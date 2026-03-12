@@ -1,0 +1,933 @@
+﻿<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>INVENTORY MANAGEMENT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+    
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { "primary": "#3B0578", "background": "#5d016b","primary1":"#000000","primary2":"#051C66" },
+                    fontFamily: { "display": ["Manrope"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        .page-section { display: none; }
+        .page-active { display: block !important; }
+        .nav-link { font-size: 0.875rem; font-weight: 700; color: #3e6296; transition: all 0.2s; padding-bottom: 0.25rem; background: none; border: none; cursor: pointer; }
+        .nav-link:hover { color: #5d016b; }
+        .nav-link-active { color: #5d016b; border-bottom: 2px solid #5d016b; }
+        .dt-button { background-color: #02735b !important; color: white !important; padding: 0.5rem 1rem !important; border-radius: 0.5rem !important; font-size: 0.75rem !important; font-weight: 700 !important; border: none !important; transition: all 0.2s !important; }
+        .dt-button:hover { filter: brightness(1.1); }
+        #monitoringTable_wrapper .dataTables_paginate { margin-top: 1rem; }
+        #monitoringTable_wrapper .dataTables_paginate .paginate_button {
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 0.5rem !important;
+            background: #ffffff !important;
+            color: #334155 !important;
+            margin: 0 0.2rem !important;
+            min-width: 2rem !important;
+        }
+        #monitoringTable_wrapper .dataTables_paginate .paginate_button.current {
+            background: #30125C !important;
+            color: #ffffff !important;
+            border-color: #30125C !important;
+        }
+        .live-page-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="bg-[#535e41] font-display text-slate-900 min-h-screen">
+
+    <header class="sticky top-0 z-50 flex items-center justify-between border-b bg-white/80 backdrop-blur-md px-10 py-4 shadow-sm">
+        <div class="flex items-center gap-8">
+        <nav class="flex gap-6">
+            <div class="flex items-center gap-4">
+            <div id="hw-dot" class="size-2.5 rounded-full bg-red-500"></div>
+            <span id="hw-status" class="text-xs font-black uppercase text-slate-400"></span>
+            </div>
+        
+                <button onclick="showPage('dashboard-page')" id="btn-live" class="nav-link nav-link-active">Live Dashboard</button>
+                <button onclick="showPage('registration-page')" id="btn-setup" class="nav-link">History & Registration</button>
+               <button onclick="showPage('user-management-page')" id="btn-users" class="nav-link">Create Users</button>
+        </nav>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <a href="/logout" class="group flex items-center gap-2 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white px-6 py-2.5 rounded-xl border border-rose-200 transition-all duration-300 shadow-sm">
+                <span class="material-symbols-outlined text-sm font-bold group-hover:rotate-180 transition-transform duration-500">logout</span>
+                <span class="text-xs font-black uppercase tracking-widest">Logout</span>
+            </a>
+        </div>
+    </header>
+
+    <div id="dashboard-page" class="page-section page-active">
+        <main class="p-10 space-y-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl border shadow-sm border-l-4 border-primary">
+                    <p class="text-[12px] font-bold text-primary">Total Items</p>
+                    <p id="stat-total" class="text-3xl font-black">0</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border shadow-sm border-l-4 border-emerald-500">
+                    <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Currently IN</p>
+                    <p id="stat-in" class="text-3xl font-black ">0</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border shadow-sm border-l-4 border-rose-500">
+                    <p class="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Currently OUT</p>
+                    <p id="stat-out" class="text-3xl font-black ">0</p>
+                </div>
+                <!-- <div class="bg-white p-6 rounded-2xl border shadow-sm flex items-center justify-center">
+                    <span class="text-[10px] font-black text-slate-300 uppercase italic">Live Monitoring Mode</span>
+                </div> -->
+            </div>
+
+            <div class="bg-white rounded-3xl p-8 border shadow-xl">
+                <div class="flex flex-col md:flex-row justify-between gap-6 mb-8">
+                    <h2 class="text-lg font-extrabold flex items-center gap-3">
+                        <span class="size-3 bg-emerald-500 rounded-full animate-pulse"></span> 
+                        Live Tracking Feed
+                    </h2>
+                    <div class="flex flex-wrap items-center gap-3 bg-slate-50 p-3 rounded-2xl border">
+                        <div class="flex items-center gap-2">
+                            <label class="text-[9px] font-black text-slate-500 uppercase">From:</label>
+                            <input type="date" id="feed-start-date" class="text-xs border-slate-200 rounded-lg px-2 py-1">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-[9px] font-black text-slate-500 uppercase">To:</label>
+                            <input type="date" id="feed-end-date" class="text-xs border-slate-200 rounded-lg px-2 py-1">
+                        </div>
+                        <button onclick="filterReportByRange()" class="bg-[#30125C] text-white px-5 py-2 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:brightness-110 transition-all">
+                            GENERATE RANGE FEED
+                        </button>
+                    </div>
+                </div>
+                
+                <table id="monitoringTable" class="w-full text-left">
+                    <thead>
+                        <tr class="text-[10px] font-black text-slate-400 uppercase border-b">
+                            <th class="font-black text-primary p-2">Date & Time</th>
+                            <th class="font-black text-primary p-2">EPC ID (24D)</th>
+                            <th class="font-black text-primary p-2">Item Details</th>
+                            <th class="font-black text-primary p-2">Category</th>
+                            <th class="font-black text-primary p-2">Weight/Purity</th>
+                            <th class="font-black text-primary p-2">Price</th>
+                            <th class="font-black text-primary text-right p-2">Status</th>
+                            <th class="hidden">SortKey</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y text-sm"></tbody>
+                </table>
+
+                <div class="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="text-xs font-bold text-slate-500">
+                        <span id="live-page-meta">Page 1 of 1</span>
+                        <span class="mx-2">|</span>
+                        <span id="live-row-meta">Rows 0</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <label for="live-page-size" class="text-[10px] font-black uppercase text-slate-500">Rows/Page</label>
+                        <select id="live-page-size" class="rounded-lg border border-slate-200 px-2 py-1 text-xs font-bold">
+                            <option value="10">10</option>
+                            <option value="25" selected>25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <button id="live-first-page" type="button" class="live-page-btn rounded-lg border border-slate-200 bg-white px-3 py-1 text-[10px] font-black uppercase text-slate-600 hover:bg-slate-50">First</button>
+                        <button id="live-last-page" type="button" class="live-page-btn rounded-lg border border-slate-200 bg-white px-3 py-1 text-[10px] font-black uppercase text-slate-600 hover:bg-slate-50">Last</button>
+                        <input id="live-page-number" type="number" min="1" value="1" class="w-20 rounded-lg border border-slate-200 px-2 py-1 text-xs font-bold" placeholder="Page #">
+                        <button id="live-go-page" type="button" class="live-page-btn rounded-lg bg-[#30125C] px-3 py-1 text-[10px] font-black uppercase text-white hover:brightness-110">Go</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="registration-page" class="page-section">
+        <main class="p-10 space-y-8">
+            <div class="bg-white p-6 rounded-3xl border">
+                <label class="text-[10px] font-black text-slate-400 uppercase block mb-4 tracking-widest">History Summary Filter</label>
+                <div class="flex items-center gap-4 mb-6">
+                    <input type="date" id="report-date" class="border rounded-xl px-4 py-2 text-sm">
+                    <button onclick="checkDateReport()" class="bg-[#1B5454] text-white px-6 py-2 rounded-xl font-bold text-sm">CHECK SUMMARY</button>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
+                        <p class="text-[9px] font-black text-emerald-600 uppercase">Total In </p>
+                        <h3 id="res-in" class="text-xl font-black ">0</h3>
+                    </div>
+                    <div class="bg-rose-50 p-4 rounded-2xl border border-rose-100">
+                        <p class="text-[9px] font-black text-rose-600 uppercase">Total Out </p>
+                        <h3 id="res-out" class="text-xl font-black">0</h3>
+                    </div>
+                    <div class="bg-amber-50 p-4 rounded-2xl border border-amber-100">
+                        <p class="text-[9px] font-black text-amber-600 uppercase">Pending In-Shop</p>
+                        <h3 id="res-pending" class="text-xl font-black">0</h3>
+                    </div>
+                </div>
+            
+                <div class="bg-white p-12 mt-6 rounded-[2.5rem] border shadow-xl">
+                    <p class="text-[10px] font-black  uppercase text-center mb-6 tracking-widest">Excel Export Center</p>
+                    <div class="flex flex-col md:flex-row items-center justify-center gap-6 mt-4">
+    <button onclick="downloadFullInventory()" 
+            class="w-fit min-w-[240px] bg-[#064e3b] text-white py-3 px-8 rounded-xl font-black text-[10px] uppercase flex items-center justify-center gap-3 shadow-md hover:bg-slate-800 hover:-translate-y-1 transition-all duration-300">
+        <span class="material-symbols-outlined text-sm">inventory_2</span> 
+        Full Registered Stock
+    </button>
+
+    <button onclick="downloadMissingReport()" 
+            class="w-fit min-w-[240px] bg-[#326622] text-white py-3 px-8 rounded-xl font-black text-[10px] uppercase flex items-center justify-center gap-3 shadow-md hover:bg-slate-800 hover:-translate-y-1 transition-all duration-300">
+        <span class="material-symbols-outlined text-sm">download</span> 
+        Missing Items Excel
+    </button>
+</div>
+                </div><br>
+                <div class="max-w-6xl mx-auto w-full">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                    <div class="bg-white p-8 rounded-3xl border shadow-xl text-center h-fit">
+                        <label class="text-sm font-black text-primary">RFID Input</label>
+                        <div class="flex flex-col items-center gap-4 py-10 border-2 border-dashed border-primary/20 rounded-2xl bg-primary/5 mt-2">
+                            <span class="material-symbols-outlined text-6xl text-primary">barcode_reader</span>
+                            <p class="text-xs font-bold text-primary">Scanning Mode Active</p>
+                        </div>
+                        <input id="reg-tag-id" 
+                               class="w-full mt-6 bg-slate-100 border-none rounded-xl text-center font-mono font-bold text-primary py-4 uppercase" 
+                               placeholder="SCAN OR TYPE TAG ID..." 
+                               type="text"/>
+                    </div>
+
+                    <div class="lg:col-span-2 bg-white p-10 rounded-3xl border shadow-xl">
+                        <form id="registration-form" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="md:col-span-2">
+                                <label class="text-sm font-black text-primary">Item Name</label>
+                                <input id="reg-name" required class="w-full rounded-xl border-slate-200 py-3 mt-1" placeholder="e.g. Solitaire Diamond Ring" type="text"/>
+                            </div>
+                            <div>
+                                <label class="text-sm font-black text-primary">Category</label>
+                                <input id="reg-category" class="w-full rounded-xl border-slate-200 py-3 mt-1" placeholder="e.g. Rings, Necklaces"/>
+                            </div>
+                            <div>
+                                <label class="text-sm font-black text-primary">Metal Type</label>
+                                <input id="reg-metal" class="w-full rounded-xl border-slate-200 py-3 mt-1" placeholder="e.g. Gold, Silver"/>
+                            </div>
+                            <div>
+                                <label class="text-sm font-black text-primary">Purity</label>
+                                <input id="reg-purity" class="w-full rounded-xl border-slate-200 py-3 mt-1" placeholder="e.g. 22K">
+                            </div>
+                            <div>
+                                <label class="text-sm font-black text-primary">HUID Number</label>
+                                <input id="reg-huid" class="w-full rounded-xl border-slate-200 py-3 mt-1" placeholder="6-digit unique code">
+                            </div>
+                            <div>
+                                <label class="text-sm font-black text-primary">Weight (g)</label>
+                                <input id="reg-weight" step="0.001" class="w-full rounded-xl border-slate-200 py-3 mt-1" type="number">
+                            </div>
+                            <div>
+                                <label class="text-sm font-black text-primary">Price (INR)</label>
+                                <input id="reg-price" step="0.01" class="w-full rounded-xl border-slate-200 py-3 mt-1" type="number">
+                            </div>
+                            <div class="md:col-span-2 pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <button type="submit" class="w-full bg-[#1F6E6E] text-white font-black py-5 rounded-2xl shadow-xl hover:-translate-y-1 transition-all uppercase tracking-widest text-sm">
+                                    Save Item
+                                </button>
+                                <button type="button" onclick="updateRegisteredItem()" class="w-full bg-[#14532d] text-white font-black py-5 rounded-2xl shadow-xl hover:-translate-y-1 transition-all uppercase tracking-widest text-sm">
+                                    Update Item
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="user-management-page" class="page-section">
+        <main class="p-10 space-y-8">
+            <div class="grid grid-cols-1 gap-6 max-w-xl w-full mx-auto">
+                <div class="bg-white p-6 rounded-3xl border shadow-xl">
+                    <h2 class="text-lg font-black text-primary mb-1">Create New User</h2>
+                    <p class="text-xs text-slate-500 mb-5">Add a new account for dashboard access.</p>
+
+                    <form id="addUserForm" class="space-y-4">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Username</label>
+                            <input type="text" id="new_username" class="w-full rounded-xl border-slate-200 py-3 mt-1" required>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Password</label>
+                            <input type="password" id="new_password" class="w-full rounded-xl border-slate-200 py-3 mt-1" required>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Role</label>
+                            <select id="new_role" class="w-full rounded-xl border-slate-200 py-3 mt-1">
+                                <option value="staff" selected>Staff</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <button type="button" onclick="registerNewUser()" class="w-full bg-[#1F6E6E] text-white font-black py-3 rounded-xl hover:brightness-110 transition-all uppercase text-xs tracking-wider">
+                            Create User
+                        </button>
+                    </form>
+                    <p id="user-action-msg" class="text-xs font-semibold mt-4"></p>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+
+<script>
+     
+(function () {
+    // Keep current state in history
+    window.history.pushState(null, null, window.location.href);
+
+    // If user goes back/swipes back, push them to the same route
+    window.onpopstate = function () {
+        window.history.pushState(null, null, window.location.href);
+        // Optional: force a silent refresh here if needed
+        // window.location.replace(window.location.href); 
+    };
+
+    // Handle BFCache (Back-Forward Cache):
+    // reload if browser serves an old cached page
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+            window.location.reload();
+        }
+    });
+    if (window.location.hash === "#no-back") {
+        window.location.hash = "no-back-again";
+    }
+})();
+    let monitoringTable;
+    let socket;
+    let currentUserRole = 'staff';
+    const MAX_LIVE_ROWS = 500;
+    let tagLookupTimer = null;
+    let lastAutoFilledTag = '';
+
+    function normalizeTagId(rawTag) {
+        const cleaned = String(rawTag || "")
+            .toUpperCase()
+            .replace(/[^A-Z0-9]/g, "");
+
+        if (!cleaned) return "";
+        if (cleaned.length === 48 && cleaned.slice(0, 24) === cleaned.slice(24, 48)) {
+            return cleaned.slice(0, 24);
+        }
+        return cleaned.slice(0, 24);
+    }
+
+    $(document).ready(async function() {
+        const isAuthenticated = await applyUserAccess();
+        if (!isAuthenticated) {
+            return;
+        }
+
+        const today = new Date().toISOString().split('T')[0];
+        $('#feed-start-date').val();
+        $('#feed-end-date').val();
+        $('#report-date').val();
+        $('#reg-tag-id').on('input', function () {
+            this.value = normalizeTagId(this.value);
+            scheduleTagLookup(this.value);
+        });
+        $('#reg-tag-id').on('blur', function () {
+            this.value = normalizeTagId(this.value);
+            scheduleTagLookup(this.value, true);
+        });
+
+        monitoringTable = $('#monitoringTable').DataTable({
+            paging: true, 
+            pagingType: 'simple_numbers',
+            pageLength: 25, 
+            lengthChange: false,
+            deferRender: true,
+            scrollY: '420px',
+            scrollCollapse: true,
+            order: [[7, "desc"]], 
+            columnDefs: [{ targets: 7, visible: false, searchable: false }],
+            dom: 'Bfrtip',
+            buttons: [
+                { extend: 'excel', text: 'DOWNLOAD EXCEL', className: 'dt-button' }, 
+                { extend: 'pdf', text: 'DOWNLOAD PDF', className: 'dt-button' }
+            ]
+        });
+        setupLivePaginationControls();
+        initWebSocket();
+        refreshStats();
+        loadOldLogs();
+    });
+
+    function showPage(pageId) {
+        $('.page-section').removeClass('page-active');
+        $('#' + pageId).addClass('page-active');
+        $('.nav-link').removeClass('nav-link-active');
+        if (pageId === 'dashboard-page') {
+            $('#btn-live').addClass('nav-link-active');
+        } else if (pageId === 'registration-page') {
+            $('#btn-setup').addClass('nav-link-active');
+        } else if (pageId === 'user-management-page') {
+            if (currentUserRole !== 'admin') {
+                showPage('dashboard-page');
+                return;
+            }
+            $('#btn-users').addClass('nav-link-active');
+        }
+    }
+
+    async function applyUserAccess() {
+        try {
+            const response = await fetch('/api/me', { cache: 'no-store' });
+            if (!response.ok) {
+                window.location.replace('/login');
+                return false;
+            }
+            const me = await response.json();
+            currentUserRole = String(me.role || 'staff').toLowerCase();
+        } catch (err) {
+            console.error('Unable to read current user role:', err);
+            window.location.replace('/login');
+            return false;
+        }
+
+        if (currentUserRole !== 'admin') {
+            $('#btn-users').hide();
+            if ($('#user-management-page').hasClass('page-active')) {
+                showPage('dashboard-page');
+            }
+        } else {
+            $('#btn-users').show();
+        }
+        return true;
+    }
+
+    function initWebSocket() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws/live-monitoring`;
+        socket = new WebSocket(wsUrl);
+        
+        socket.onopen = () => {
+            $('#hw-status').text("").addClass('text-emerald-500').removeClass('text-slate-400');
+            $('#hw-dot').addClass('bg-emerald-500').removeClass('bg-red-500');
+        };
+        
+        socket.onmessage = (e) => {
+            const d = JSON.parse(e.data);
+            if (d.source === "REGISTRATION") { 
+                const normalizedTag = normalizeTagId(d.tag_id);
+                $('#reg-tag-id').val(normalizedTag).addClass('bg-emerald-50'); 
+                setTimeout(() => $('#reg-tag-id').removeClass('bg-emerald-50'), 500); 
+                scheduleTagLookup(normalizedTag, true);
+            }
+            if (d.source === "MONITORING") { 
+                addRow(d); 
+                refreshStats(); 
+            }
+        };
+        
+        socket.onclose = () => {
+            $('#hw-status').text("Offline").removeClass('text-emerald-500').addClass('text-slate-400');
+            $('#hw-dot').addClass('bg-red-500').removeClass('bg-emerald-500');
+            setTimeout(initWebSocket, 5000);
+        };
+    }
+
+    function addRow(d, drawNow = true) {
+        const datePart = String(d.date || "").trim();
+        const timePart = String(d.timestamp || "").trim();
+        const dateTimeLabel = (datePart && timePart) ? `${datePart}, ${timePart}` : (datePart || timePart || "-");
+        const badge = `<div class="text-right"><span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${d.direction==='IN'?'bg-emerald-100 text-emerald-700':'bg-rose-100 text-rose-700'}">${d.direction}</span></div>`;
+        const sortKey = Number(d.id || Date.now() / 1000);
+        if (monitoringTable.rows().count() >= MAX_LIVE_ROWS) {
+            const lastIndex = monitoringTable.rows().indexes().toArray().pop();
+            if (lastIndex !== undefined) monitoringTable.row(lastIndex).remove();
+        }
+        monitoringTable.row.add([
+            dateTimeLabel,
+            `<span class="font-mono text-[10px] bg-slate-100 px-2 py-1 rounded border">${d.tag_id}</span>`,
+            `<div class="flex flex-col"><span class="font-bold">${d.item_name}</span><span class="text-[9px] text-slate-400">${d.huid || '-'}</span></div>`,
+            `<span class="text-xs font-bold text-slate-500">${d.category || '-'}</span>`,
+            `<span class="text-xs font-bold">${d.weight || 0}g</span>`,
+            `<span class="font-black text-emerald-600">${d.price || 0}</span>`,
+            badge,
+            sortKey
+        ]);
+        if (drawNow) monitoringTable.draw(false);
+    }
+
+    function updateLivePaginationMeta() {
+        if (!monitoringTable) return;
+        const info = monitoringTable.page.info();
+        if (!info) return;
+
+        const totalPages = Math.max(info.pages || 0, 1);
+        const currentPage = (info.pages || 0) > 0 ? (info.page + 1) : 1;
+        $('#live-page-meta').text(`Page ${currentPage} of ${totalPages}`);
+        $('#live-row-meta').text(`Rows ${info.recordsDisplay}`);
+        $('#live-page-number').attr('max', totalPages);
+
+        const atFirst = info.page <= 0;
+        const atLast = info.page >= (info.pages - 1);
+        $('#live-first-page').prop('disabled', atFirst);
+        $('#live-last-page').prop('disabled', atLast);
+    }
+
+    function goToLivePage() {
+        if (!monitoringTable) return;
+        const info = monitoringTable.page.info();
+        if (!info || !info.pages) return;
+
+        let targetPage = parseInt($('#live-page-number').val(), 10);
+        if (Number.isNaN(targetPage)) {
+            targetPage = info.page + 1;
+        }
+        targetPage = Math.max(1, Math.min(targetPage, info.pages));
+        $('#live-page-number').val(targetPage);
+        monitoringTable.page(targetPage - 1).draw('page');
+    }
+
+    function setupLivePaginationControls() {
+        $('#live-page-size').on('change', function () {
+            const nextSize = parseInt(this.value, 10);
+            if (Number.isNaN(nextSize) || nextSize <= 0) return;
+            monitoringTable.page.len(nextSize).draw(false);
+        });
+
+        $('#live-first-page').on('click', function () {
+            monitoringTable.page('first').draw('page');
+        });
+
+        $('#live-last-page').on('click', function () {
+            monitoringTable.page('last').draw('page');
+        });
+
+        $('#live-go-page').on('click', goToLivePage);
+        $('#live-page-number').on('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                goToLivePage();
+            }
+        });
+
+        monitoringTable.on('draw.dt page.dt length.dt search.dt order.dt', updateLivePaginationMeta);
+        updateLivePaginationMeta();
+    }
+
+    async function refreshStats() {
+        try {
+            const r = await fetch('/api/stats'); 
+            const d = await r.json();
+            $('#stat-total').text(d.total); 
+            $('#stat-in').text(d.in); 
+            $('#stat-out').text(d.out);
+        } catch(e) { console.error(e); }
+    }
+
+    async function loadOldLogs() {
+        try {
+            const r = await fetch('/api/logs'); 
+            const logs = (await r.json()).slice(0, MAX_LIVE_ROWS);
+            monitoringTable.clear(); 
+            logs.forEach(l => addRow(l, false)); 
+            monitoringTable.draw(false);
+            monitoringTable.page('first').draw('page');
+        } catch(e) { console.error(e); }
+    }
+
+    function clearRegistrationFields() {
+        $('#reg-name').val('');
+        $('#reg-category').val('');
+        $('#reg-metal').val('');
+        $('#reg-purity').val('');
+        $('#reg-huid').val('');
+        $('#reg-weight').val('');
+        $('#reg-price').val('');
+    }
+
+    function fillRegistrationFields(item) {
+        $('#reg-name').val(item.item_name || '');
+        $('#reg-category').val(item.category || '');
+        $('#reg-metal').val(item.metal_type || '');
+        $('#reg-purity').val(item.purity || '');
+        $('#reg-huid').val(item.huid || '');
+        $('#reg-weight').val(item.weight ?? '');
+        $('#reg-price').val(item.price ?? '');
+    }
+
+    async function fetchAndFillItemByTag(tagId, silentNotFound = true) {
+        if (!tagId || tagId.length !== 24) return false;
+
+        try {
+            const res = await fetch(`/api/item/${encodeURIComponent(tagId)}`, { cache: 'no-store' });
+            if (res.status === 401) {
+                window.location.replace('/login');
+                return false;
+            }
+            if (res.status === 404) {
+                if (!silentNotFound) {
+                    alert("No registered item found for this tag.");
+                }
+                clearRegistrationFields();
+                lastAutoFilledTag = '';
+                return false;
+            }
+            if (!res.ok) {
+                const err = await res.json();
+                alert(err.detail || "Item fetch failed.");
+                return false;
+            }
+
+            const item = await res.json();
+            fillRegistrationFields(item);
+            lastAutoFilledTag = tagId;
+            return true;
+        } catch (err) {
+            console.error("Tag lookup failed:", err);
+            return false;
+        }
+    }
+
+    function scheduleTagLookup(tagId, immediate = false) {
+        if (tagLookupTimer) {
+            clearTimeout(tagLookupTimer);
+            tagLookupTimer = null;
+        }
+
+        if (!tagId || tagId.length !== 24) {
+            lastAutoFilledTag = '';
+            clearRegistrationFields();
+            return;
+        }
+
+        if (tagId === lastAutoFilledTag) {
+            return;
+        }
+
+        if (immediate) {
+            fetchAndFillItemByTag(tagId, true);
+            return;
+        }
+
+        tagLookupTimer = setTimeout(() => {
+            fetchAndFillItemByTag(tagId, true);
+        }, 250);
+    }
+
+    function getRegistrationPayload() {
+        return {
+            item_name: $('#reg-name').val(),
+            category: $('#reg-category').val(),
+            metal_type: $('#reg-metal').val(),
+            purity: $('#reg-purity').val(),
+            weight: parseFloat($('#reg-weight').val()) || 0,
+            huid: $('#reg-huid').val(),
+            price: parseFloat($('#reg-price').val()) || 0
+        };
+    }
+
+    function getUpdatePayload() {
+        const rawTextFields = {
+            item_name: $('#reg-name').val(),
+            category: $('#reg-category').val(),
+            metal_type: $('#reg-metal').val(),
+            purity: $('#reg-purity').val(),
+            huid: $('#reg-huid').val()
+        };
+
+        const payload = {};
+        Object.entries(rawTextFields).forEach(([key, value]) => {
+            const cleanValue = String(value || "").trim();
+            if (cleanValue !== "") payload[key] = cleanValue;
+        });
+
+        const rawWeight = $('#reg-weight').val();
+        if (rawWeight !== '') payload.weight = parseFloat(rawWeight);
+
+        const rawPrice = $('#reg-price').val();
+        if (rawPrice !== '') payload.price = parseFloat(rawPrice);
+
+        return payload;
+    }
+
+    function validateTagIdForRegistration() {
+        const tagId = normalizeTagId($('#reg-tag-id').val());
+        $('#reg-tag-id').val(tagId);
+        if (!tagId || tagId === "") {
+            alert("RFID Tag ID is required.");
+            return "";
+        }
+        if (tagId.length !== 24) {
+            alert("EPC must be exactly 24 characters. Please scan again.");
+            return "";
+        }
+        return tagId;
+    }
+
+    $('#registration-form').submit(async (e) => {
+        e.preventDefault();
+        const tagId = validateTagIdForRegistration();
+        if (!tagId) return;
+        
+        const p = { tag_id: tagId, ...getRegistrationPayload() };
+        
+        try {
+            const res = await fetch('/register-item', { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify(p) 
+            });
+            if(res.ok) { 
+                alert("Item registered successfully.");
+                window.location.reload();
+            } else { 
+                const err = await res.json();
+                alert(err.detail || "Registration failed.");
+            }
+        } catch (err) { alert("Connection failed."); }
+    });
+
+    async function updateRegisteredItem() {
+        const tagId = validateTagIdForRegistration();
+        if (!tagId) return;
+
+        const payload = getUpdatePayload();
+        if (Object.keys(payload).length === 0) {
+            alert("Please fill at least one field to update.");
+            return;
+        }
+
+        try {
+            const res = await fetch(`/update-item/${encodeURIComponent(tagId)}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                alert("Item updated successfully.");
+                window.location.reload();
+            } else {
+                const err = await res.json();
+                alert(err.detail || "Update failed.");
+            }
+        } catch (err) {
+            alert("Connection failed.");
+        }
+    }
+
+    async function checkDateReport() {
+        const selectedDate = $('#report-date').val();
+        if(!selectedDate) return alert("Select date!");
+        try {
+            const res = await fetch(`/api/report-summary?target_date=${selectedDate}`);
+            const data = await res.json();
+            $('#res-in').text(data.in_count);
+            $('#res-out').text(data.out_count);
+            $('#res-pending').text(data.pending_count);
+        } catch (err) { console.error(err); }
+    }
+
+  async function downloadMissingReport() {
+    const selectedDate = document.getElementById('report-date').value;
+    
+    if (!selectedDate) {
+        alert("Please select a date first!");
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/missing-items?target_date=${selectedDate}`);
+        const data = await res.json();
+        
+        if (data.length === 0) { 
+            alert(`No items were found pending (IN) for ${selectedDate}`); 
+            return; 
+        }
+
+        const header = Object.keys(data[0]);
+        let csv = data.map(row => header.map(f => JSON.stringify(row[f])).join(','));
+        csv.unshift(header.join(','));
+        
+        const blob = new Blob([csv.join('\r\n')], { type: 'text/csv' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        
+        link.download = `Missing_Items_${selectedDate}.csv`;
+        link.click();
+    } catch (err) { 
+        alert("Download failed"); 
+        console.error(err);
+    }
+}
+
+    async function filterReportByRange() {
+        const start = $('#feed-start-date').val();
+        const end = $('#feed-end-date').val();
+        if (!start || !end) {
+            alert("Please select both start and end dates.");
+            return;
+        }
+        if (start > end) {
+            alert("Start date cannot be after end date.");
+            return;
+        }
+        try {
+            const response = await fetch(`/api/logs?start_date=${encodeURIComponent(start)}&end_date=${encodeURIComponent(end)}&limit=${MAX_LIVE_ROWS}`);
+            if (!response.ok) {
+                const err = await response.json();
+                alert(err.detail || "Unable to filter by date range.");
+                return;
+            }
+            const logs = (await response.json()).slice(0, MAX_LIVE_ROWS);
+            monitoringTable.clear();
+            logs.forEach(log => addRow(log, false));
+            monitoringTable.draw(false);
+            monitoringTable.page('first').draw('page');
+        } catch (err) { console.error(err); }
+    }
+
+    async function downloadFullInventory() {
+        try {
+            const res = await fetch('/api/all-inventory');
+            const data = await res.json();
+            if (data.length === 0) { alert("Inventory is empty!"); return; }
+            const header = Object.keys(data[0]);
+            let csv = data.map(row => header.map(f => JSON.stringify(row[f])).join(','));
+            csv.unshift(header.join(','));
+            const blob = new Blob([csv.join('\r\n')], { type: 'text/csv' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Full_Inventory_Report_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        } catch (err) { alert("Download failed!"); }
+    }
+
+async function registerNewUser() {
+    const msg = document.getElementById('user-action-msg');
+    const userData = {
+        username: document.getElementById('new_username').value.trim(),
+        password: document.getElementById('new_password').value.trim(),
+        role: document.getElementById('new_role').value
+    };
+
+    if (!userData.username || !userData.password) {
+        msg.className = 'text-xs font-semibold mt-4 text-rose-600';
+        msg.textContent = 'Username and password required.';
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/add-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+        });
+
+        if (response.ok) {
+            msg.className = 'text-xs font-semibold mt-4 text-emerald-600';
+            msg.textContent = 'User created successfully.';
+            document.getElementById('addUserForm').reset();
+        } else {
+            const error = await response.json();
+            msg.className = 'text-xs font-semibold mt-4 text-rose-600';
+            msg.textContent = error.detail || 'Unable to create user.';
+        }
+    } catch (err) {
+        msg.className = 'text-xs font-semibold mt-4 text-rose-600';
+        msg.textContent = 'Network error while creating user.';
+    }
+}
+</script>
+
+<footer class="flex items-center justify-between border-b px-10 py-4 bg-white shadow-sm">
+<P class="flex items-center gap-3"><p class="text-xs font-bold text-slate-800">
+            Developed by : <span class="text-[10px] text-[#000000] font-black uppercase tracking-tighter">Pushpendra Sachan</span>
+        </p></P>
+</footer>
+<!--<button onclick="toggleChat()" style="position:fixed; bottom:20px; right:20px; width:60px; height:60px; background:#1C5C1C; color:white; border-radius:50%; border:none; box-shadow:0 4px 15px rgba(0,0,0,0.3); cursor:pointer; z-index:1000;">
+    <i class="fa-solid fa-robot" style="font-size: 24px;"></i>
+</button>
+
+<div id="ai-chat-window" style="display:none; position:fixed; bottom:95px; right:20px; width:350px; background:rgba(10,10,15,0.95); border:1px solid rgba(28,92,28,0.5); border-radius:15px; backdrop-filter:blur(10px); color:white; box-shadow:0 10px 30px rgba(0,0,0,0.5); z-index:1000; overflow:hidden; font-family: 'Inter', sans-serif;">
+    <div style="background:#1C5C1C; padding:15px; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
+        <span><i class="fa-solid fa-microchip mr-2"></i> Inventory AI</span>
+        <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="toggleChat()"></i>
+    </div>
+    <div id="ai-messages" style="height:300px; overflow-y:auto; padding:15px; font-size:13px; scroll-behavior:smooth; display:flex; flex-direction:column; gap:10px;">
+        <div style="background:rgba(255,255,255,0.1); padding:10px; border-radius:10px; border-bottom-left-radius: 0;">
+          Hey I'm Your AI Assistant Please Ask Me Anything Like Stock Related Or Any General Questions.
+        </div>
+    </div>
+    <div style="padding:15px; border-top:1px solid rgba(255,255,255,0.1); display:flex; gap:10px;">
+        <input type="text" id="ai-input" placeholder="Ask anything about data..." style="flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.2); border-radius:8px; padding:10px; color:white; outline:none; font-size:13px;">
+        <button onclick="sendToAI()" style="background:#1C5C1C; border:none; color:white; padding:10px 15px; border-radius:8px; cursor:pointer; transition: 0.3s hover;">
+            <i class="fa-solid fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+-->
+<!--<script>
+function toggleChat() {
+    const chat = document.getElementById('ai-chat-window');
+    chat.style.display = (chat.style.display === 'none' || chat.style.display === '') ? 'block' : 'none';
+}
+
+async function sendToAI() {
+    const input = document.getElementById('ai-input');
+    const msgDiv = document.getElementById('ai-messages');
+    const query = input.value.trim();
+    if(!query) return;
+
+    // User Message
+    msgDiv.innerHTML += `<div style="align-self: flex-end; background:#1C5C1C; padding:10px; border-radius:10px; border-bottom-right-radius: 0; max-width:80%;">${query}</div>`;
+    input.value = '';
+    
+    // Loading Animation
+    const loadingId = "loading-" + Date.now();
+    msgDiv.innerHTML += `<div id="${loadingId}" style="align-self: flex-start; color:#aaa;"><i class="fa-solid fa-circle-notch animate-spin"></i> AI is scanning DB...</div>`;
+    msgDiv.scrollTop = msgDiv.scrollHeight;
+
+    try {
+        const res = await fetch(`/api/ai-chat?query=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        document.getElementById(loadingId).remove();
+        
+        // AI Response
+        msgDiv.innerHTML += `<div style="align-self: flex-start; background:rgba(255,255,255,0.1); padding:10px; border-radius:10px; border-bottom-left-radius: 0; max-width:85%; border-left:3px solid #1C5C1C;">${data.answer}</div>`;
+    } catch(e) {
+        document.getElementById(loadingId).innerHTML = "<span style='color:red;'>Error connecting to AI.</span>";
+    }
+    msgDiv.scrollTop = msgDiv.scrollHeight;
+}
+
+// Enter key support
+document.getElementById('ai-input').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') sendToAI();
+});
+</script>-->
+</body>
+</html>
+
+
+

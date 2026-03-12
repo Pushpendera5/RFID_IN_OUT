@@ -1,0 +1,156 @@
+# ============================================================
+# KOL JEWELLERY BACKEND - NEW PC COMPLETE SETUP GUIDE
+# ============================================================
+# This file gives full setup, run, auto-start, and stop steps.
+# Follow in order.
+
+
+# ------------------------------------------------------------
+# 1) Copy project folder to the new PC
+# ------------------------------------------------------------
+# Example target path:
+# C:\Users\<YOUR_USER>\Desktop\Kol_jewellery\backend
+
+
+# ------------------------------------------------------------
+# 2) Install Python
+# ------------------------------------------------------------
+# Install Python 3.11 or 3.12 from python.org
+# IMPORTANT: Tick "Add Python to PATH" during install.
+
+
+# ------------------------------------------------------------
+# 3) Open PowerShell and go to backend folder
+# ------------------------------------------------------------
+cd "C:\Users\<YOUR_USER>\Desktop\Kol_jewellery\backend"
+
+
+# ------------------------------------------------------------
+# 4) Verify Python and pip
+# ------------------------------------------------------------
+python --version
+pip --version
+
+
+# ------------------------------------------------------------
+# 5) Create virtual environment
+# ------------------------------------------------------------
+python -m venv .venv
+
+
+# ------------------------------------------------------------
+# 6) Install required dependencies
+# ------------------------------------------------------------
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+
+
+# ------------------------------------------------------------
+# 7) Create environment config file
+# ------------------------------------------------------------
+copy .env.production.example .env.production
+notepad .env.production
+
+
+# ------------------------------------------------------------
+# 8) Edit .env.production (minimum required values)
+# ------------------------------------------------------------
+# Replace placeholders with real values:
+#
+# APP_ENV=production
+# APP_HOST=0.0.0.0
+# APP_PORT=8000
+# APP_FAIL_FAST=false
+#
+# DB_SERVER=<SQL_SERVER_IP_OR_HOST>
+# DB_PORT=1433
+# DB_NAME=<YOUR_DB_NAME>
+# DB_TRUSTED_CONNECTION=no
+# DB_USERNAME=<SQL_LOGIN_USER>
+# DB_PASSWORD=<SQL_LOGIN_PASSWORD>
+# DB_ENCRYPT=no
+# DB_TRUST_SERVER_CERTIFICATE=yes
+#
+# COOKIE_SECURE=false                 # keep false if using HTTP
+# SECRET_KEY=<LONG_RANDOM_SECRET>
+# BOOTSTRAP_ADMIN_USERNAME=<APP_LOGIN_USER>
+# BOOTSTRAP_ADMIN_PASSWORD=<APP_LOGIN_PASS>
+
+
+# ------------------------------------------------------------
+# 9) Verify SQL database connectivity from this PC
+# ------------------------------------------------------------
+# If sqlcmd is installed:
+sqlcmd -S <SQL_SERVER_IP_OR_HOST>,1433 -U <SQL_LOGIN_USER> -P "<SQL_LOGIN_PASSWORD>" -Q "SELECT 1"
+
+# If this fails, app login will fail.
+# Fix SQL host/port/firewall/credentials first.
+
+
+# ------------------------------------------------------------
+# 10) One-time automatic setup script (recommended)
+# ------------------------------------------------------------
+.\setup_new_pc.ps1 -DbServer "<SQL_SERVER_IP_OR_HOST>" -DbPort 1433 -DbName "<YOUR_DB_NAME>" -DbUser "<SQL_LOGIN_USER>" -DbPassword "<SQL_LOGIN_PASSWORD>"
+
+
+# ------------------------------------------------------------
+# 11) Start backend manually (test run)
+# ------------------------------------------------------------
+run_backend.bat
+
+# Open in browser:
+# http://127.0.0.1:8000/login
+# or
+# http://<NEW_PC_IP>:8000/login
+
+
+# ------------------------------------------------------------
+# 12) Enable automatic startup after reboot/power cut
+# ------------------------------------------------------------
+# Run Command Prompt or PowerShell as Administrator, then:
+install_auto_start.bat
+
+# What this does:
+# - Auto-starts backend on system boot
+# - Uses watchdog for auto-restart if process crashes
+
+
+# ------------------------------------------------------------
+# 13) Control commands (from anywhere)
+# ------------------------------------------------------------
+# First time only (set backend path):
+backend_control_anywhere.bat configure "C:\Users\<YOUR_USER>\Desktop\Kol_jewellery\backend"
+
+# Start backend:
+backend_control_anywhere.bat start
+
+# Stop backend:
+backend_control_anywhere.bat stop
+
+# Restart backend:
+backend_control_anywhere.bat restart
+
+# Check status:
+backend_control_anywhere.bat status
+
+
+# ------------------------------------------------------------
+# 14) Disable automatic startup (if needed)
+# ------------------------------------------------------------
+remove_auto_start.bat
+
+
+# ------------------------------------------------------------
+# 15) Common quick fixes
+# ------------------------------------------------------------
+# If port conflict or stale lock:
+Get-Process python -ErrorAction SilentlyContinue | Stop-Process -Force
+if (Test-Path .\reader.lock) { Remove-Item .\reader.lock -Force }
+
+# Then start again:
+run_backend.bat
+
+
+# ============================================================
+# End of guide
+# ============================================================
