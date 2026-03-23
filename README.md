@@ -6,7 +6,7 @@ When an RFID tag attached to an item is scanned by the reader antennas, the syst
 
 The system records all transactions in a database and allows users to generate custom reports based on date ranges.
 
-⚙️ How the System Works\
+⚙️ How the System Works
 
 Register items in the web application.
 
