@@ -144,7 +144,7 @@ project-folder
 ├── static
 │   ├── css
 │   ├── js
-│
+│    ── html 
 ├── templates
 │   ├── login.html
 │   ├── dashboard.html

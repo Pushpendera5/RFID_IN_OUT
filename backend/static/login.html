@@ -55,6 +55,22 @@
         }
         .btn-3d:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 25px rgba(28, 92, 28, 0.6); }
         .btn-3d:disabled { opacity: 0.6; cursor: not-allowed; }
+        .brand-logo-shell {
+            width: 176px;
+            margin: 0 auto 1.15rem;
+            padding: 0.52rem 0.85rem;
+            border-radius: 0.9rem;
+            border: 1px solid rgba(28, 92, 28, 0.4);
+            background: linear-gradient(145deg, rgba(8, 14, 10, 0.85), rgba(22, 45, 30, 0.88));
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+        }
+        .brand-logo {
+            display: block;
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.4));
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen text-slate-200 p-4">
@@ -66,8 +82,8 @@
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-primary opacity-10 blur-3xl rounded-full"></div>
             
             <header class="text-center mb-10 relative z-10">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/20 border border-primary/30 mb-4">
-                    <i class="fa-solid fa-shield-halved text-2xl text-primary animate-pulse-slow"></i>
+                <div class="brand-logo-shell">
+                    <img class="brand-logo" src="/static/logo%20white.png" alt="Company Logo"/>
                 </div>
                 <h1 class="text-3xl font-bold tracking-tight text-white mb-2">WELCOME BACK </h1>
                 <p class="text-slate-400 text-sm">Admin Panel Access</p>

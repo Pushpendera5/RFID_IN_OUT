@@ -22,7 +22,7 @@ goto :help
 :help
 echo.
 echo Usage:
-echo   backend_control_anywhere.bat configure "C:\path\to\Kol_jewellery\backend"
+echo   backend_control_anywhere.bat configure "C:\path\to\Kol_jewellery - Copy\backend"
 echo   backend_control_anywhere.bat start
 echo   backend_control_anywhere.bat stop
 echo   backend_control_anywhere.bat restart
@@ -59,6 +59,12 @@ if not defined BACKEND_DIR (
 )
 
 if not defined BACKEND_DIR (
+    if exist "%USERPROFILE%\Desktop\Kol_jewellery - Copy\backend\main.py" (
+        set "BACKEND_DIR=%USERPROFILE%\Desktop\Kol_jewellery - Copy\backend"
+    )
+)
+
+if not defined BACKEND_DIR (
     if exist "%USERPROFILE%\Desktop\Kol_jewellery\backend\main.py" (
         set "BACKEND_DIR=%USERPROFILE%\Desktop\Kol_jewellery\backend"
     )
@@ -75,7 +81,7 @@ if not defined BACKEND_DIR (
 if not defined BACKEND_DIR (
     echo Could not find backend folder.
     echo First run:
-    echo   %~nx0 configure "C:\path\to\Kol_jewellery\backend"
+    echo   %~nx0 configure "C:\path\to\Kol_jewellery - Copy\backend"
     exit /b 1
 )
 exit /b 0

@@ -209,7 +209,7 @@ ANTENNA_MAP = _antenna_map_from_env or {"1": "IN", "2": "OUT"}
 # Security/dashboard behavior
 # -----------------------------------------------------------------------------
 COOKIE_NAME = _env_str("COOKIE_NAME", "session_id")
-MAX_LOG_LIMIT = _env_int("MAX_LOG_LIMIT", 2000)
+MAX_LOG_LIMIT = _env_int("MAX_LOG_LIMIT", 10000)
 
 # -----------------------------------------------------------------------------
 # Authentication/security settings

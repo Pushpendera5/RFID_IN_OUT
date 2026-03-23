@@ -1,0 +1,161 @@
+========================================
+COMPLETE SETUP GUIDE - MOVING FOLDER TO NEW LOCATION
+========================================
+
+WHAT CHANGES ARE NEEDED:
+========================================
+
+OPTION 1: UPDATE backend_path.txt FILE (Easiest)
+========================================
+1. Open folder: C:\Users\abhay\Desktop\Kol_jewellery - Copy\backend
+2. Open file: backend_path.txt
+3. It currently contains:
+   C:\Users\abhay\Desktop\Kol_jewellery - Copy\backend
+
+4. Replace it with your new path, for example:
+   C:\Users\abhay\Documents\myproject\backend
+   
+5. Save the file. DONE!
+
+---
+
+OPTION 2: USE COMMAND (Recommended)
+========================================
+1. Open Command Prompt
+2. Navigate to backend folder:
+   cd C:\Users\abhay\Desktop\Kol_jewellery - Copy\backend
+
+3. Run this command:
+   backend_control_anywhere.bat configure "C:\new\path\Kol_jewellery - Copy\backend"
+
+4. Press Enter. The backend_path.txt will automatically update!
+
+---
+
+OPTION 3: SET ENVIRONMENT VARIABLE (Permanent)
+========================================
+A. Using GUI:
+   1. Windows Search: environment variables
+   2. Click "Edit the system environment variables"
+   3. Click "Environment Variables" button
+   4. Click "New..." button (in User variables section)
+   5. Fill in:
+      - Variable name: KOL_BACKEND_DIR
+      - Variable value: C:\Users\abhay\Desktop\Kol_jewellery - Copy\backend
+   6. OK → OK → OK
+
+B. Using Command Prompt:
+   1. Open in Administrator mode
+   2. Type:
+      setx KOL_BACKEND_DIR "C:\Users\abhay\Desktop\Kol_jewellery - Copy\backend"
+   3. Press Enter
+
+C. Verify:
+   Type in command prompt:
+   echo %KOL_BACKEND_DIR%
+   
+   Your path should be displayed!
+
+---
+
+WHICH BATCH FILES NEED CHANGES?
+========================================
+
+1. run_backend.bat
+   - NO CHANGES NEEDED ✅
+   - Uses relative paths
+
+2. run_backend_watchdog.bat
+   - NO CHANGES NEEDED ✅
+   - Auto-calls other files
+
+3. backend_control_anywhere.bat
+   - NO CHANGES NEEDED ✅
+   - Smart logic that checks:
+     a. KOL_BACKEND_DIR environment variable
+     b. backend_path.txt file
+     c. Desktop default locations
+     d. Current directory
+
+4. install_auto_start.bat
+   - NO CHANGES NEEDED ✅
+   - Automatically detects location
+
+---
+
+BEST APPROACH AFTER MOVING FOLDER:
+========================================
+
+PRIORITY ORDER:
+1. Update backend_path.txt (Quickest)
+2. Use Configure command (Safest)
+3. Set Environment variable (Most Permanent)
+
+---
+
+STEP-BY-STEP PROCESS:
+========================================
+
+STEP 1: Move folder to new location
+   - Copy/Paste folder to new path
+
+STEP 2: Confirm main.py exists in new location
+   - C:\new\path\Kol_jewellery - Copy\backend\main.py
+
+STEP 3: Update backend_path.txt
+   - Open: backend_path.txt
+   - Change path to new location
+   - Save
+
+STEP 4: Test
+   - Open Command Prompt
+   - Type: backend_control_anywhere.bat status
+   - Backend status should be displayed
+
+---
+
+COMMON PATH EXAMPLES:
+========================================
+
+Current:
+C:\Users\abhay\Desktop\Kol_jewellery - Copy\backend
+
+If moving to:
+- Documents: C:\Users\abhay\Documents\Kol_jewellery\backend
+- Program Files: C:\Program Files\Kol_jewellery\backend
+- Different Drive: D:\Projects\Kol_jewellery\backend
+
+---
+
+FREQUENTLY ASKED QUESTIONS:
+========================================
+
+Q: Are there hardcoded paths in batch files?
+A: NO! They use smart logic to auto-detect
+
+Q: Will server start after moving folder?
+A: Yes, if you update backend_path.txt!
+
+Q: Is environment variable permanent?
+A: Yes, setx command makes it permanent
+
+Q: What if I copy folder to multiple locations?
+A: Environment variable has highest priority
+
+---
+
+HOW IT WORKS:
+========================================
+
+The batch files search for backend in this order:
+1. KOL_BACKEND_DIR environment variable (if set)
+2. backend_path.txt configuration file
+3. Default Desktop locations
+4. Current directory
+
+If backend_path.txt is updated, files will automatically 
+work from the new location without any other changes!
+
+========================================
+SETUP COMPLETE! You can safely move your folder! ✅
+========================================

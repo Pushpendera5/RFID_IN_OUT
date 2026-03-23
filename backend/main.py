@@ -1046,7 +1046,7 @@ def get_logs(
     date: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    limit: int = 100,
+    limit: int = 10000,
     _user=Depends(require_authenticated_user),
 ):
     db = SessionLocal()
@@ -1195,7 +1195,7 @@ def register_item(item: ItemRegister, _user=Depends(require_authenticated_user))
 
 
 @app.patch("/update-item/{tag_id}")
-def update_item(tag_id: str, item: ItemUpdate, _user=Depends(require_authenticated_user)):
+def update_item(tag_id: str, item: ItemUpdate, _user=Depends(require_admin_user)):
     # Update only mutable fields; tag_id remains the stable primary key.
     db = SessionLocal()
     try:

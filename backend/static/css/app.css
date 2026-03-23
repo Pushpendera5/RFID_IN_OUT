@@ -1,27 +1,4 @@
-﻿<!DOCTYPE html>
-<html class="light" lang="en">
-<head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>RFID JEWELLERY SHOP | Jewellery Operations Studio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
-
-    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
-    <style>
-        :root {
+:root {
             --text: #2d1f14;
             --muted: #584937;
             --line: rgba(169, 136, 92, 0.3);
@@ -156,6 +133,7 @@
             border-radius: 9999px;
             background: #fff8eb;
             padding: 0.55rem 0.88rem;
+            animation: statusGlow 2.4s ease-in-out infinite;
         }
 
         #hw-dot {
@@ -255,15 +233,15 @@
         .mosaic {
             display: grid;
             grid-template-columns: 1.5fr 1fr;
-            gap: 0.62rem;
+            gap: 0.85rem;
         }
 
         .spotlight {
             border-radius: 1rem;
             border: 1px solid rgba(197, 151, 82, 0.35);
             background: linear-gradient(130deg, #fff8ec 0%, #fdeccf 100%);
-            padding: 0.86rem 0.92rem;
-            min-height: 168px;
+            padding: 1.15rem;
+            min-height: 220px;
             position: relative;
             overflow: hidden;
         }
@@ -290,26 +268,27 @@
         }
 
         .spot-text {
-            margin: 0.46rem 0 0;
-            font-size: 0.78rem;
+            margin: 0.75rem 0 0;
+            font-size: 0.82rem;
             color: #725d47;
-            line-height: 1.45;
+            line-height: 1.7;
             max-width: 48ch;
         }
 
-        .kpi-column { display: grid; gap: 0.55rem; max-width: 430px; justify-self: end; width: 100%; }
+        .kpi-column { display: grid; gap: 0.8rem; max-width: 470px; justify-self: end; width: 100%; }
         .kpi {
             border-radius: 0.98rem;
             border: 1px solid rgba(175, 149, 114, 0.3);
             background: #ffffff;
-            padding: 0.72rem 0.84rem;
+            padding: 1rem 1.02rem;
             box-shadow: 0 11px 24px rgba(114, 88, 55, 0.1);
+            animation: cardLiftFloat 7.2s ease-in-out infinite;
         }
         .kpi:nth-child(1) { background: linear-gradient(120deg, #fff6e7 0%, #fffdf8 100%); }
         .kpi:nth-child(2) { background: linear-gradient(120deg, #ecfff6 0%, #f9fffc 100%); }
         .kpi:nth-child(3) { background: linear-gradient(120deg, #edf6ff 0%, #f7fbff 100%); }
         .kpi-k { margin: 0; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.09em; color: #5d4c37; font-weight: 700; }
-        .kpi-v { margin: 0.24rem 0 0; font-size: clamp(1.15rem, 2vw, 1.72rem); font-weight: 800; line-height: 1; color: #4a3721; }
+        .kpi-v { margin: 0.38rem 0 0; font-size: clamp(1.3rem, 2.6vw, 2rem); font-weight: 800; line-height: 1; color: #4a3721; }
         #stat-total { color: #9f6a23 !important; }
         #stat-in { color: #19735f !important; }
         #stat-out { color: #2f5f8c !important; }
@@ -323,6 +302,7 @@
             max-width: 1260px;
             margin: 0 auto;
             width: 100%;
+            animation: studioFloat 8.4s ease-in-out infinite;
         }
         #dashboard-page .panel { background: linear-gradient(150deg, rgba(255, 254, 250, 0.98), rgba(255, 244, 223, 0.94)); }
         #registration-page .panel { background: linear-gradient(150deg, rgba(255, 255, 253, 0.98), rgba(242, 253, 248, 0.95)); }
@@ -377,6 +357,7 @@
             border: 1px solid rgba(201, 151, 69, 0.56);
             border-radius: 0.92rem;
             background: linear-gradient(120deg, #e8c483 0%, #d8a451 100%);
+            background-size: 200% 100%;
             color: #3b2a16;
             min-height: 52px;
             padding: 0.7rem 1.15rem;
@@ -387,6 +368,7 @@
             cursor: pointer;
             box-shadow: 0 10px 20px rgba(201, 151, 69, 0.19);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            animation: buttonFlow 5.4s linear infinite;
         }
         .action-btn:hover {
             transform: translateY(-1px);
@@ -459,7 +441,7 @@
 
         .registration-grid { margin-top: 0.72rem; display: grid; grid-template-columns: 350px minmax(0, 1fr); gap: 0.72rem; }
         .scanner { border-radius: 0.8rem; border: 1px solid rgba(47, 143, 131, 0.32); background: linear-gradient(140deg, #f3fdfb, #ecf8f5); padding: 0.82rem; }
-        .scanner-core { margin-top: 0.56rem; border: 1px dashed rgba(47, 143, 131, 0.42); border-radius: 0.72rem; background: #f5fffc; padding: 1rem 0.72rem; text-align: center; }
+        .scanner-core { margin-top: 0.56rem; border: 1px dashed rgba(47, 143, 131, 0.42); border-radius: 0.72rem; background: #f5fffc; padding: 1rem 0.72rem; text-align: center; animation: scannerWave 2.5s ease-out infinite; }
         .scanner-core .material-symbols-outlined { color: #1a8b77 !important; }
         .scanner-core p { color: #3f6e67 !important; font-weight: 700; }
 
@@ -862,6 +844,7 @@
             background: linear-gradient(120deg, #1f2937 0%, #234154 42%, #27504a 75%, #334155 100%) !important;
             border: 1px solid rgba(148, 163, 184, 0.32) !important;
             box-shadow: 0 8px 18px rgba(15, 23, 42, 0.2) !important;
+            animation: nebulaDrift 28s ease-in-out infinite;
         }
         .hero-dock::before {
             content: "";
@@ -1069,6 +1052,12 @@
             background: linear-gradient(120deg, #0ea5a4 0%, #10b981 100%) !important;
             border-color: #0f766e !important;
             color: #ffffff !important;
+            animation: activeTabPulse 2.8s ease-in-out infinite;
+        }
+
+        @keyframes activeTabPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.2); }
+            50% { box-shadow: 0 0 0 8px rgba(20, 184, 166, 0.04); }
         }
         .panel {
             background: #ffffff !important;
@@ -1100,6 +1089,22 @@
         .scanner {
             background: linear-gradient(140deg, #ecfeff, #f0fdfa) !important;
             border-color: rgba(45, 212, 191, 0.36) !important;
+            animation: scannerBreathe 4.2s ease-in-out infinite;
+        }
+
+        @keyframes scannerBreathe {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
+        }
+
+        .scanner-core .material-symbols-outlined {
+            animation: scannerIconPulse 2.4s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        @keyframes scannerIconPulse {
+            0%, 100% { transform: scale(1); opacity: 0.92; }
+            50% { transform: scale(1.08); opacity: 1; }
         }
         .action-btn {
             background: linear-gradient(120deg, #10b981 0%, #0ea5a4 100%) !important;
@@ -1125,6 +1130,69 @@
         }
         #monitoringTable tbody tr:nth-child(even) td { background: #edf8ff !important; }
         #monitoringTable tbody tr:hover td { background: #dff4ff !important; }
+
+        #monitoringTable tbody tr.live-row-enter td {
+            animation: rowEntryFlash 0.9s ease;
+        }
+
+        @keyframes rowEntryFlash {
+            0% {
+                background: #bbf7d0 !important;
+                transform: translateY(8px);
+                opacity: 0.5;
+            }
+            60% {
+                background: #dcfce7 !important;
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .kpi-v.metric-updating {
+            animation: metricPop 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        @keyframes metricPop {
+            0% { transform: translateY(6px) scale(0.95); opacity: 0.5; }
+            65% { transform: translateY(0) scale(1.06); opacity: 1; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .ripple-host {
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .tap-ripple {
+            position: absolute;
+            border-radius: 9999px;
+            pointer-events: none;
+            transform: translate(-50%, -50%) scale(0);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.16) 50%, transparent 70%);
+            animation: tapRipple 0.66s ease-out forwards;
+            z-index: 0;
+        }
+
+        @keyframes tapRipple {
+            from { transform: translate(-50%, -50%) scale(0); opacity: 0.7; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .nav-link-active,
+            .scanner,
+            .scanner-core .material-symbols-outlined,
+            #monitoringTable tbody tr.live-row-enter td,
+            .kpi-v.metric-updating,
+            .tap-ripple {
+                animation: none !important;
+            }
+        }
         .live-page-btn {
             background: #e0f2fe !important;
             border-color: rgba(14, 116, 144, 0.34) !important;
@@ -1207,6 +1275,146 @@
         .reveal { opacity: 0; transform: translateY(10px); animation: fadeUp 0.54s ease forwards; }
         @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
 
+        .bg-matrix {
+            animation: matrixDrift 24s linear infinite;
+            will-change: background-position;
+        }
+
+        @keyframes matrixDrift {
+            0% { background-position: 0 0, 0 0; }
+            50% { background-position: 26px 14px, 14px 26px; }
+            100% { background-position: 52px 28px, 28px 52px; }
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: -12% -8%;
+            pointer-events: none;
+            z-index: 0;
+            background:
+                radial-gradient(circle at 15% 28%, rgba(20, 184, 166, 0.11), transparent 34%),
+                radial-gradient(circle at 82% 20%, rgba(14, 165, 233, 0.1), transparent 36%),
+                radial-gradient(circle at 72% 82%, rgba(59, 130, 246, 0.09), transparent 38%);
+            filter: blur(2px);
+            animation: auraFloat 18s ease-in-out infinite alternate;
+        }
+
+        @keyframes auraFloat {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            50% { transform: translate3d(1.2%, -1.5%, 0) scale(1.02); }
+            100% { transform: translate3d(-1.1%, 1.1%, 0) scale(1.03); }
+        }
+
+        .page-section.page-enter {
+            animation: sectionSlideIn 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+        }
+
+        @keyframes sectionSlideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .motion-tilt {
+            transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+            transition: transform 0.22s ease;
+            will-change: transform;
+        }
+
+        .nav-link,
+        .action-btn,
+        .logout-link,
+        .live-page-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before,
+        .action-btn::before,
+        .logout-link::before,
+        .live-page-btn::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(112deg, transparent 30%, rgba(255, 255, 255, 0.35) 48%, transparent 66%);
+            transform: translateX(-130%);
+            transition: transform 0.6s ease;
+            pointer-events: none;
+        }
+
+        .nav-link:hover::before,
+        .action-btn:hover::before,
+        .logout-link:hover::before,
+        .live-page-btn:hover::before {
+            transform: translateX(130%);
+        }
+
+        .nav-link:hover,
+        .action-btn:hover,
+        .logout-link:hover,
+        .live-page-btn:hover {
+            transform: translateY(-2px) !important;
+        }
+
+        @keyframes cardLiftFloat {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-6px) scale(1.003); }
+        }
+
+        @keyframes studioFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-4px); }
+        }
+
+        @keyframes buttonFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes statusGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.08); }
+            50% { box-shadow: 0 0 0 7px rgba(56, 189, 248, 0.02); }
+        }
+
+        @keyframes scannerWave {
+            0% {
+                transform: translate(-50%, -50%) scale(0.3);
+                opacity: 0.64;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(4.2);
+                opacity: 0;
+            }
+        }
+
+        @keyframes nebulaDrift {
+            0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+            50% { transform: translate3d(1.6%, -1.4%, 0) rotate(1.4deg) scale(1.03); }
+            100% { transform: translate3d(-1.2%, 1.2%, 0) rotate(-1.1deg) scale(1.05); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .bg-matrix,
+            body::before,
+            .reveal,
+            .page-section.page-enter,
+            .nav-link::before,
+            .action-btn::before,
+            .logout-link::before,
+            .live-page-btn::before {
+                animation: none !important;
+                transition: none !important;
+            }
+            .motion-tilt,
+            .nav-link:hover,
+            .action-btn:hover,
+            .logout-link:hover,
+            .live-page-btn:hover {
+                transform: none !important;
+            }
+        }
+
         @media (max-width: 1180px) { .mosaic, .registration-grid { grid-template-columns: 1fr; } }
         @media (max-width: 980px) {
             .feed-panel .filters { grid-template-columns: 1fr !important; }
@@ -1221,864 +1429,3 @@
             .brand-stack { align-items: flex-start; gap: 0.7rem; }
             .brand-mark-shell { width: 132px; }
         }
-    </style>
-</head>
-<body>
-    <div class="bg-matrix"></div>
-
-    <div class="studio">
-        <header class="top-dock glass hero-dock">
-            <div class="brand-stack">
-                <div class="brand-mark-shell">
-                    <img class="brand-mark" src="/static/logo%20white.png" alt="Company Logo"/>
-                </div>
-                <div class="brand-copy">
-                    <h1 class="brand-title">RFID JEWELLERY SHOP</h1>
-                    <p class="brand-sub">Modern solutions for modern jewellery stores.</p>
-                </div>
-            </div>
-            <div class="dock-right">
-                <div class="status-badge">
-                    <div id="hw-dot" class="bg-amber-500"></div>
-                    <span id="hw-status">Offline</span>
-                </div>
-                <a href="/logout" class="logout-link"><span class="material-symbols-outlined text-sm">logout</span>Logout</a>
-            </div>
-        </header>
-
-        <nav class="nav-ribbon glass">
-            <button onclick="showPage('dashboard-page')" id="btn-live" class="nav-link nav-link-active">Live Dashboard</button>
-            <button onclick="showPage('registration-page')" id="btn-setup" class="nav-link">History and Registration</button>
-            <button onclick="showPage('user-management-page')" id="btn-users" class="nav-link">Create Users</button>
-        </nav>
-
-        <section id="dashboard-page" class="page-section page-active space-y-3">
-            <div class="mosaic">
-                <article class="spotlight reveal" style="animation-delay:0.04s">
-                    <h2 class="spot-title">Live  Pulse</h2>
-                    <p class="spot-text">Stay informed with real-time updates on vault activity and inventory status.</p>
-                </article>
-                <div class="kpi-column">
-                    <article class="kpi reveal" style="animation-delay:0.1s"><p class="kpi-k">Total Items</p><p id="stat-total" class="kpi-v text-yellow-100">0</p></article>
-                    <article class="kpi reveal" style="animation-delay:0.14s"><p class="kpi-k">Currently In</p><p id="stat-in" class="kpi-v text-emerald-300">0</p></article>
-                    <article class="kpi reveal" style="animation-delay:0.18s"><p class="kpi-k">Currently Out</p><p id="stat-out" class="kpi-v text-amber-300">0</p></article>
-                </div>
-            </div>
-
-            <article class="panel feed-panel reveal" style="animation-delay:0.2s">
-                <h3 class="panel-title">Feed Range Generator</h3>
-                <p class="panel-sub">Set a timeline and generate a focused feed window.</p>
-                <div class="filters">
-                    <div><label class="field-label" for="feed-start-date">From Date</label><input type="date" id="feed-start-date"/></div>
-                    <div><label class="field-label" for="feed-end-date">To Date</label><input type="date" id="feed-end-date"/></div>
-                    <div class="flex items-end justify-end"><button onclick="filterReportByRange()" class="action-btn feed-generate-btn">Generate Feed</button></div>
-                </div>
-
-                <div class="table-shell overflow-hidden">
-                    <table id="monitoringTable" class="w-full text-left">
-                        <thead>
-                            <tr>
-                                <th class="p-2">Date</th>
-                                <th class="p-2">Time</th>
-                                <th class="p-2">EPC ID (24D)</th>
-                                <th class="p-2">Item Details</th>
-                                <th class="p-2">Category</th>
-                                <th class="p-2">Weight/Purity</th>
-                                <th class="p-2">Price</th>
-                                <th class="p-2 text-right">Status</th>
-                                <th class="hidden">SortKey</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-
-                <div class="mt-3 live-controls-row">
-                    <div class="live-meta text-[0.64rem] font-semibold tracking-[0.09em] text-slate-400"><span id="live-page-meta">Page 1 of 1</span><span class="mx-2">|</span><span id="live-row-meta">Rows 0</span></div>
-                    <div class="live-controls">
-                        <label for="live-page-size" class="field-label !mb-0">Rows/Page</label>
-                        <select id="live-page-size" class="w-auto min-w-[85px]"><option value="10">10</option><option value="25" selected>25</option><option value="50">50</option><option value="100">100</option><option value="500">500</option><option value="1000">1000</option><option value="2000">2000</option><option value="3000">3000</option><option value="4000">4000</option><option value="5000">5000</option><option value="6000">6000</option><option value="7000">7000</option><option value="8000">8000</option><option value="9000">9000</option><option value="10000">10000</option></select>
-                        <button id="live-first-page" type="button" class="live-page-btn">First</button>
-                        <button id="live-last-page" type="button" class="live-page-btn">Last</button>
-                        <input id="live-page-number" type="number" min="1" value="1" class="w-20" placeholder="Page #"/>
-                        <button id="live-go-page" type="button" class="live-page-btn">Go</button>
-                    </div>
-                </div>
-            </article>
-        </section>
-
-        <section id="registration-page" class="page-section space-y-3">
-            <article class="panel reveal" style="animation-delay:0.05s">
-                <h3 class="panel-title">History Summary Lens</h3>
-                <p class="panel-sub">Select a date and inspect in-out-pending movement instantly.</p>
-                <div class="filters">
-                    <div><label class="field-label" for="report-date">Report Date</label><input type="date" id="report-date"/></div>
-                    <div class="flex items-end"><button onclick="checkDateReport()" class="action-btn w-full">Check Summary</button></div>
-                </div>
-                <div class="summary-grid">
-                    <article class="summary"><p>Total In</p><h3 id="res-in" class="text-emerald-300">0</h3></article>
-                    <article class="summary"><p>Total Out</p><h3 id="res-out" class="text-amber-300">0</h3></article>
-                    <article class="summary"><p>Pending In-Shop</p><h3 id="res-pending" class="text-amber-200">0</h3></article>
-                </div>
-            </article>
-
-            <article class="panel reveal" style="animation-delay:0.1s">
-                <h3 class="panel-title">Export Hub</h3>
-                <p class="panel-sub">Generate full inventory or missing-item excel quickly.</p>
-                <div class="grid-2 mt-3">
-                    <button onclick="downloadFullInventory()" class="action-btn action-btn-secondary flex items-center justify-center gap-2"><span class="material-symbols-outlined text-sm">inventory_2</span>Full Registered Stock</button>
-                    <button onclick="downloadMissingReport()" class="action-btn action-btn-rose flex items-center justify-center gap-2"><span class="material-symbols-outlined text-sm">download</span>Missing Items Excel</button>
-                </div>
-            </article>
-
-            <div class="registration-grid">
-                <aside class="scanner reveal" style="animation-delay:0.14s">
-                    <h3 class="panel-title">RFID Intake Dock</h3>
-                    <p class="panel-sub">Scan tag to auto-fill and update data faster.</p>
-                    <div class="scanner-core">
-                        <span class="material-symbols-outlined text-5xl text-cyan-200">barcode_reader</span>
-                        <p class="mt-2 text-[0.61rem] uppercase tracking-[0.1em] text-cyan-100/80">Scanner Listening</p>
-                    </div>
-                    <div class="mt-3"><label class="field-label" for="reg-tag-id">RFID Tag</label><input id="reg-tag-id" class="text-center font-mono font-bold uppercase tracking-[0.08em]" placeholder="Scan or type 24-char tag id..." type="text"/></div>
-                </aside>
-
-                <article class="panel reveal" style="animation-delay:0.18s">
-                    <h3 class="panel-title">Register or Update Item</h3>
-                    <p class="panel-sub">Maintain category, purity, HUID, weight and pricing with one form.</p>
-                    <form id="registration-form" class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="md:col-span-2"><label class="field-label" for="reg-name">Item Name</label><input id="reg-name" required placeholder="e.g. Solitaire Diamond Ring" type="text"/></div>
-                        <div><label class="field-label" for="reg-category">Category</label><input id="reg-category" placeholder="e.g. Rings, Necklaces"/></div>
-                        <div><label class="field-label" for="reg-metal">Metal Type</label><input id="reg-metal" placeholder="e.g. Gold, Silver"/></div>
-                        <div><label class="field-label" for="reg-purity">Purity</label><input id="reg-purity" placeholder="e.g. 22K"/></div>
-                        <div><label class="field-label" for="reg-huid">HUID Number</label><input id="reg-huid" placeholder="6-digit unique code"/></div>
-                        <div><label class="field-label" for="reg-weight">Weight (g)</label><input id="reg-weight" step="0.001" type="number"/></div>
-                        <div><label class="field-label" for="reg-price">Price (INR)</label><input id="reg-price" step="0.01" type="number"/></div>
-                        <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <button type="submit" class="action-btn action-btn-secondary">Save Item</button>
-                            <button id="update-item-btn" type="button" onclick="updateRegisteredItem()" class="action-btn">Update Item</button>
-                        </div>
-                    </form>
-                </article>
-            </div>
-        </section>
-
-        <section id="user-management-page" class="page-section">
-            <article class="panel reveal max-w-xl mx-auto" style="animation-delay:0.06s">
-                <h3 class="panel-title">User Provisioning</h3>
-                <p class="panel-sub">Create staff/admin credentials for dashboard access.</p>
-                <form id="addUserForm" class="space-y-4 mt-4">
-                    <div><label class="field-label" for="new_username">Username</label><input type="text" id="new_username" required/></div>
-                    <div><label class="field-label" for="new_password">Password</label><input type="password" id="new_password" required/></div>
-                    <div><label class="field-label" for="new_role">Role</label><select id="new_role"><option value="admin">Admin</option><option value="staff" selected>Staff</option></select></div>
-                    <button type="button" onclick="registerNewUser()" class="action-btn w-full">Create User</button>
-                </form>
-                <p id="user-action-msg" class="mt-4 text-xs font-semibold"></p>
-            </article>
-        </section>
-
-        <footer class="app-footer text-center"><span class="footer-label">Developed by</span> <span class="footer-author">Pushpendra Sachan</span></footer>
-    </div>
-<script>
-(function () {
-    window.history.pushState(null, null, window.location.href);
-
-    window.onpopstate = function () {
-        window.history.pushState(null, null, window.location.href);
-    };
-
-    window.addEventListener('pageshow', function(event) {
-        const navEntries = (window.performance && window.performance.getEntriesByType)
-            ? window.performance.getEntriesByType('navigation')
-            : [];
-        const isBackForward = navEntries.length > 0 && navEntries[0].type === 'back_forward';
-        if (event.persisted || isBackForward) {
-            window.location.reload();
-        }
-    });
-    if (window.location.hash === "#no-back") {
-        window.location.hash = "no-back-again";
-    }
-})();
-
-let monitoringTable;
-let socket;
-let currentUserRole = 'staff';
-const MAX_LIVE_ROWS = 10000;
-let tagLookupTimer = null;
-let lastAutoFilledTag = '';
-const LAST_ACTIVE_PAGE_KEY = 'rfid_last_active_page';
-
-function restoreActivePageAfterReload() {
-    try {
-        const pageId = sessionStorage.getItem(LAST_ACTIVE_PAGE_KEY);
-        if (!pageId) return false;
-        sessionStorage.removeItem(LAST_ACTIVE_PAGE_KEY);
-
-        if (pageId === 'user-management-page' && currentUserRole !== 'admin') {
-            showPage('dashboard-page');
-            return true;
-        }
-
-        if (['dashboard-page', 'registration-page', 'user-management-page'].includes(pageId)) {
-            showPage(pageId);
-            return true;
-        }
-    } catch (err) {
-        console.warn('Unable to restore active page:', err);
-    }
-    return false;
-}
-
-function normalizeTagId(rawTag) {
-    const cleaned = String(rawTag || "")
-        .toUpperCase()
-        .replace(/[^A-Z0-9]/g, "");
-
-    if (!cleaned) return "";
-    if (cleaned.length === 48 && cleaned.slice(0, 24) === cleaned.slice(24, 48)) {
-        return cleaned.slice(0, 24);
-    }
-    return cleaned.slice(0, 24);
-}
-
-function animateSection(sectionId) {
-    const nodes = document.querySelectorAll(`#${sectionId} .reveal`);
-    nodes.forEach((node, idx) => {
-        node.style.opacity = '0';
-        node.style.animation = 'none';
-        void node.offsetWidth;
-        node.style.animation = `fadeUp 0.58s ease ${(idx * 55)}ms forwards`;
-    });
-}
-
-$(document).ready(async function() {
-    const isAuthenticated = await applyUserAccess();
-    if (!isAuthenticated) {
-        return;
-    }
-
-    $('#reg-tag-id').on('input', function () {
-        this.value = normalizeTagId(this.value);
-        scheduleTagLookup(this.value);
-    });
-    $('#reg-tag-id').on('blur', function () {
-        this.value = normalizeTagId(this.value);
-        scheduleTagLookup(this.value, true);
-    });
-
-    monitoringTable = $('#monitoringTable').DataTable({
-        paging: true,
-        pagingType: 'simple_numbers',
-        pageLength: 25,
-        lengthChange: false,
-        deferRender: true,
-        scrollY: '420px',
-        scrollCollapse: true,
-        order: [[8, "desc"]],
-        columnDefs: [{ targets: 8, visible: false, searchable: false }],
-        dom: 'Bfrtp',
-        buttons: [
-            { extend: 'excel', text: 'Download Excel', className: 'dt-button', exportOptions: { columns: [0,1,2,3,4,5,6,7] } },
-            { extend: 'pdf', text: 'Download PDF', className: 'dt-button', exportOptions: { columns: [0,1,2,3,4,5,6,7] } }
-        ]
-    });
-
-    setupLivePaginationControls();
-    initWebSocket();
-    refreshStats();
-    loadOldLogs();
-    if (!restoreActivePageAfterReload()) {
-        showPage('dashboard-page');
-    }
-});
-
-function showPage(pageId) {
-    $('.page-section').removeClass('page-active');
-    $('#' + pageId).addClass('page-active');
-    $('.nav-link').removeClass('nav-link-active');
-
-    if (pageId === 'dashboard-page') {
-        $('#btn-live').addClass('nav-link-active');
-    } else if (pageId === 'registration-page') {
-        $('#btn-setup').addClass('nav-link-active');
-    } else if (pageId === 'user-management-page') {
-        if (currentUserRole !== 'admin') {
-            showPage('dashboard-page');
-            return;
-        }
-        $('#btn-users').addClass('nav-link-active');
-    }
-
-    animateSection(pageId);
-}
-
-async function applyUserAccess() {
-    try {
-        const response = await fetch('/api/me', { cache: 'no-store' });
-        if (!response.ok) {
-            window.location.replace('/login');
-            return false;
-        }
-        const me = await response.json();
-        currentUserRole = String(me.role || 'staff').toLowerCase();
-    } catch (err) {
-        console.error('Unable to read current user role:', err);
-        window.location.replace('/login');
-        return false;
-    }
-
-    if (currentUserRole !== 'admin') {
-        $('#btn-users')
-            .show()
-            .addClass('nav-link-locked')
-            .attr('title', 'Admin only module');
-        $('#update-item-btn').hide();
-        if ($('#user-management-page').hasClass('page-active')) {
-            showPage('dashboard-page');
-        }
-    } else {
-        $('#btn-users')
-            .show()
-            .removeClass('nav-link-locked')
-            .removeAttr('title');
-        $('#update-item-btn').show();
-    }
-    return true;
-}
-
-function initWebSocket() {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws/live-monitoring`;
-    socket = new WebSocket(wsUrl);
-
-    socket.onopen = () => {
-        $('#hw-status').text("Online").addClass('text-emerald-300').removeClass('text-slate-400');
-        $('#hw-dot').addClass('bg-emerald-300').removeClass('bg-amber-500');
-    };
-
-    socket.onmessage = (e) => {
-        const d = JSON.parse(e.data);
-        if (d.source === "REGISTRATION") {
-            const normalizedTag = normalizeTagId(d.tag_id);
-            $('#reg-tag-id').val(normalizedTag).addClass('scan-highlight');
-            setTimeout(() => $('#reg-tag-id').removeClass('scan-highlight'), 500);
-            scheduleTagLookup(normalizedTag, true);
-        }
-        if (d.source === "MONITORING") {
-            addRow(d);
-            refreshStats();
-        }
-    };
-
-    socket.onclose = () => {
-        $('#hw-status').text("Offline").removeClass('text-emerald-300').addClass('text-slate-400');
-        $('#hw-dot').addClass('bg-amber-500').removeClass('bg-emerald-300');
-        setTimeout(initWebSocket, 5000);
-    };
-}
-
-function addRow(d, drawNow = true) {
-    const datePart = String(d.date || "").trim();
-    const timePart = String(d.timestamp || "").trim();
-    let dateLabel = datePart || "-";
-    const isoDateMatch = /^\d{4}-\d{2}-\d{2}$/.exec(datePart);
-    if (isoDateMatch) {
-        const [year, month, day] = datePart.split('-');
-        dateLabel = `${day}-${month}-${year}`;
-    }
-    const timeLabel = timePart || "-";
-    const directionClass = d.direction === 'IN' ? 'status-chip status-chip-in' : 'status-chip status-chip-out';
-    const badge = `<div class="text-right"><span class="${directionClass}">${d.direction || '-'}</span></div>`;
-    const sortKey = Number(d.id || Date.now() / 1000);
-    const parsedPrice = Number(d.price || 0);
-    const priceLabel = Number.isFinite(parsedPrice) ? parsedPrice.toLocaleString('en-IN') : (d.price || 0);
-    if (monitoringTable.rows().count() >= MAX_LIVE_ROWS) {
-        const lastIndex = monitoringTable.rows().indexes().toArray().pop();
-        if (lastIndex !== undefined) monitoringTable.row(lastIndex).remove();
-    }
-    monitoringTable.row.add([
-        dateLabel,
-        timeLabel,
-        `<span class="tag-chip">${d.tag_id || '-'}</span>`,
-        `<div class="flex flex-col"><span class="item-name">${d.item_name || '-'}</span><span class="item-sub">${d.huid || '-'}</span></div>`,
-        `<span class="font-semibold text-slate-300">${d.category || '-'}</span>`,
-        `<span class="font-semibold text-slate-100">${d.weight || 0}g</span>`,
-        `<span class="font-black price-cell">INR ${priceLabel}</span>`,
-        badge,
-        sortKey
-    ]);
-    if (drawNow) monitoringTable.draw(false);
-}
-
-function updateLivePaginationMeta() {
-    if (!monitoringTable) return;
-    const info = monitoringTable.page.info();
-    if (!info) return;
-
-    const totalPages = Math.max(info.pages || 0, 1);
-    const currentPage = (info.pages || 0) > 0 ? (info.page + 1) : 1;
-    const totalRows = monitoringTable.rows().count();
-    $('#live-page-meta').text(`Page ${currentPage} of ${totalPages}`);
-    $('#live-row-meta').text(`Total Entries ${totalRows}`);
-    $('#live-page-number').attr('max', totalPages);
-
-    const atFirst = info.page <= 0;
-    const atLast = info.page >= (info.pages - 1);
-    $('#live-first-page').prop('disabled', atFirst);
-    $('#live-last-page').prop('disabled', atLast);
-}
-
-function goToLivePage() {
-    if (!monitoringTable) return;
-    const info = monitoringTable.page.info();
-    if (!info || !info.pages) return;
-
-    let targetPage = parseInt($('#live-page-number').val(), 10);
-    if (Number.isNaN(targetPage)) {
-        targetPage = info.page + 1;
-    }
-    targetPage = Math.max(1, Math.min(targetPage, info.pages));
-    $('#live-page-number').val(targetPage);
-    monitoringTable.page(targetPage - 1).draw('page');
-}
-
-function setupLivePaginationControls() {
-    $('#live-page-size').on('change', function () {
-        const nextSize = parseInt(this.value, 10);
-        if (Number.isNaN(nextSize) || nextSize <= 0) return;
-        monitoringTable.page.len(nextSize).draw(false);
-    });
-
-    $('#live-first-page').on('click', function () {
-        monitoringTable.page('first').draw('page');
-    });
-
-    $('#live-last-page').on('click', function () {
-        monitoringTable.page('last').draw('page');
-    });
-
-    $('#live-go-page').on('click', goToLivePage);
-    $('#live-page-number').on('keydown', function (e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            goToLivePage();
-        }
-    });
-
-    monitoringTable.on('draw.dt page.dt length.dt search.dt order.dt', updateLivePaginationMeta);
-    updateLivePaginationMeta();
-}
-
-async function refreshStats() {
-        try {
-            const r = await fetch('/api/stats'); 
-            const d = await r.json();
-            $('#stat-total').text(d.total); 
-            $('#stat-in').text(d.in); 
-            $('#stat-out').text(d.out);
-        } catch(e) { console.error(e); }
-    }
-
-    async function loadOldLogs() {
-        try {
-            const r = await fetch(`/api/logs?limit=${MAX_LIVE_ROWS}`);
-            const logs = await r.json();
-            monitoringTable.clear(); 
-            logs.forEach(l => addRow(l, false)); 
-            monitoringTable.draw(false);
-            monitoringTable.page('first').draw('page');
-        } catch(e) { console.error(e); }
-    }
-
-    function clearRegistrationFields() {
-        $('#reg-name').val('');
-        $('#reg-category').val('');
-        $('#reg-metal').val('');
-        $('#reg-purity').val('');
-        $('#reg-huid').val('');
-        $('#reg-weight').val('');
-        $('#reg-price').val('');
-    }
-
-    function fillRegistrationFields(item) {
-        $('#reg-name').val(item.item_name || '');
-        $('#reg-category').val(item.category || '');
-        $('#reg-metal').val(item.metal_type || '');
-        $('#reg-purity').val(item.purity || '');
-        $('#reg-huid').val(item.huid || '');
-        $('#reg-weight').val(item.weight ?? '');
-        $('#reg-price').val(item.price ?? '');
-    }
-
-    async function fetchAndFillItemByTag(tagId, silentNotFound = true) {
-        if (!tagId || tagId.length !== 24) return false;
-
-        try {
-            const res = await fetch(`/api/item/${encodeURIComponent(tagId)}`, { cache: 'no-store' });
-            if (res.status === 401) {
-                window.location.replace('/login');
-                return false;
-            }
-            if (res.status === 404) {
-                if (!silentNotFound) {
-                    alert("No registered item found for this tag.");
-                }
-                lastAutoFilledTag = '';
-                return false;
-            }
-            if (!res.ok) {
-                const err = await res.json();
-                alert(err.detail || "Item fetch failed.");
-                return false;
-            }
-
-            const item = await res.json();
-            fillRegistrationFields(item);
-            lastAutoFilledTag = tagId;
-            return true;
-        } catch (err) {
-            console.error("Tag lookup failed:", err);
-            return false;
-        }
-    }
-
-    function scheduleTagLookup(tagId, immediate = false) {
-        if (tagLookupTimer) {
-            clearTimeout(tagLookupTimer);
-            tagLookupTimer = null;
-        }
-
-        if (!tagId || tagId.length !== 24) {
-            lastAutoFilledTag = '';
-            return;
-        }
-
-        if (tagId === lastAutoFilledTag) {
-            return;
-        }
-
-        if (immediate) {
-            fetchAndFillItemByTag(tagId, true);
-            return;
-        }
-
-        tagLookupTimer = setTimeout(() => {
-            fetchAndFillItemByTag(tagId, true);
-        }, 250);
-    }
-
-    function getRegistrationPayload() {
-        return {
-            item_name: $('#reg-name').val(),
-            category: $('#reg-category').val(),
-            metal_type: $('#reg-metal').val(),
-            purity: $('#reg-purity').val(),
-            weight: parseFloat($('#reg-weight').val()) || 0,
-            huid: $('#reg-huid').val(),
-            price: parseFloat($('#reg-price').val()) || 0
-        };
-    }
-
-    function getUpdatePayload() {
-        const rawTextFields = {
-            item_name: $('#reg-name').val(),
-            category: $('#reg-category').val(),
-            metal_type: $('#reg-metal').val(),
-            purity: $('#reg-purity').val(),
-            huid: $('#reg-huid').val()
-        };
-
-        const payload = {};
-        Object.entries(rawTextFields).forEach(([key, value]) => {
-            const cleanValue = String(value || "").trim();
-            if (cleanValue !== "") payload[key] = cleanValue;
-        });
-
-        const rawWeight = $('#reg-weight').val();
-        if (rawWeight !== '') payload.weight = parseFloat(rawWeight);
-
-        const rawPrice = $('#reg-price').val();
-        if (rawPrice !== '') payload.price = parseFloat(rawPrice);
-
-        return payload;
-    }
-
-    function validateTagIdForRegistration() {
-        const tagId = normalizeTagId($('#reg-tag-id').val());
-        $('#reg-tag-id').val(tagId);
-        if (!tagId || tagId === "") {
-            alert("RFID Tag ID is required.");
-            return "";
-        }
-        if (tagId.length !== 24) {
-            alert("EPC must be exactly 24 characters. Please scan again.");
-            return "";
-        }
-        return tagId;
-    }
-
-    $('#registration-form').submit(async (e) => {
-        e.preventDefault();
-        const tagId = validateTagIdForRegistration();
-        if (!tagId) return;
-        
-        const p = { tag_id: tagId, ...getRegistrationPayload() };
-        
-        try {
-            const res = await fetch('/register-item', { 
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify(p) 
-            });
-            if(res.ok) { 
-                alert("Item registered successfully.");
-                clearRegistrationFields();
-                $('#reg-tag-id').val('');
-                lastAutoFilledTag = '';
-                sessionStorage.setItem(LAST_ACTIVE_PAGE_KEY, 'registration-page');
-                setTimeout(() => window.location.reload(), 120);
-            } else { 
-                const err = await res.json();
-                alert(err.detail || "Registration failed.");
-            }
-        } catch (err) { alert("Connection failed."); }
-    });
-
-    async function updateRegisteredItem() {
-        if (currentUserRole !== 'admin') {
-            alert("Only admin can update items.");
-            return;
-        }
-
-        const tagId = validateTagIdForRegistration();
-        if (!tagId) return;
-
-        const payload = getUpdatePayload();
-        if (Object.keys(payload).length === 0) {
-            alert("Please fill at least one field to update.");
-            return;
-        }
-
-        try {
-            const res = await fetch(`/update-item/${encodeURIComponent(tagId)}`, {
-                method: 'PATCH',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(payload)
-            });
-
-            if (res.ok) {
-                alert("Item updated successfully.");
-                clearRegistrationFields();
-                $('#reg-tag-id').val('');
-                lastAutoFilledTag = '';
-                sessionStorage.setItem(LAST_ACTIVE_PAGE_KEY, 'registration-page');
-                setTimeout(() => window.location.reload(), 120);
-            } else {
-                const err = await res.json();
-                alert(err.detail || "Update failed.");
-            }
-        } catch (err) {
-            alert("Connection failed.");
-        }
-    }
-
-    async function checkDateReport() {
-        const selectedDate = $('#report-date').val();
-        if(!selectedDate) return alert("Select date!");
-        try {
-            const res = await fetch(`/api/report-summary?target_date=${selectedDate}`);
-            const data = await res.json();
-            $('#res-in').text(data.in_count);
-            $('#res-out').text(data.out_count);
-            $('#res-pending').text(data.pending_count);
-        } catch (err) { console.error(err); }
-    }
-
-  function buildOrderedCsvRows(data, preferredOrder = []) {
-    if (!Array.isArray(data) || data.length === 0) return { headers: [], rows: [] };
-    const firstRowKeys = Object.keys(data[0]);
-    const orderedPreferred = preferredOrder.filter(k => firstRowKeys.includes(k));
-    const remaining = firstRowKeys.filter(k => !orderedPreferred.includes(k));
-    const headers = [...orderedPreferred, ...remaining];
-    const rows = data.map((row, idx) => headers.map((h) => {
-      if (h === "sr_no") return idx + 1;
-      const value = row[h];
-      return value === undefined || value === null ? "" : value;
-    }));
-    return { headers, rows };
-  }
-
-  function downloadCsvFallback(fileName, headers, rows) {
-    const csv = [headers.join(',')];
-    rows.forEach((row) => csv.push(row.map((v) => JSON.stringify(v ?? "")).join(',')));
-    const blob = new Blob([csv.join('\r\n')], { type: 'text/csv' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    const outName = fileName.toLowerCase().endsWith('.xlsx')
-      ? fileName.replace(/\.xlsx$/i, '.csv')
-      : `${fileName}.csv`;
-    link.download = outName;
-    link.click();
-  }
-
-  function downloadAutoWidthXlsx(fileName, sheetName, headers, rows) {
-    if (!headers.length) return;
-
-    // Fallback to CSV if XLSX lib is unavailable.
-    if (typeof XLSX === "undefined" || !XLSX.utils) {
-      downloadCsvFallback(fileName, headers, rows);
-      return;
-    }
-
-    const normalizedRows = rows.map((row) => row.map((cell) => {
-      if (cell === undefined || cell === null) return "";
-      return cell;
-    }));
-
-    const aoa = [headers, ...normalizedRows];
-    const ws = XLSX.utils.aoa_to_sheet(aoa);
-
-    const colWidths = headers.map((header, colIdx) => {
-      let maxLen = String(header ?? "").length;
-      normalizedRows.forEach((row) => {
-        const cellLen = String(row[colIdx] ?? "").length;
-        if (cellLen > maxLen) maxLen = cellLen;
-      });
-      return { wch: Math.min(52, Math.max(10, maxLen + 2)) };
-    });
-    ws['!cols'] = colWidths;
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, sheetName || "Report");
-
-    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob(
-      [wbout],
-      { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
-    );
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = fileName;
-    link.click();
-  }
-
-  async function downloadMissingReport() {
-    const selectedDate = document.getElementById('report-date').value;
-    
-    if (!selectedDate) {
-        alert("Please select a date first!");
-        return;
-    }
-
-    try {
-        const res = await fetch(`/api/missing-items?target_date=${selectedDate}`);
-        const data = await res.json();
-        
-        if (data.length === 0) { 
-            alert(`No items were found pending (IN) for ${selectedDate}`); 
-            return; 
-        }
-
-        const { headers, rows } = buildOrderedCsvRows(data);
-        downloadAutoWidthXlsx(
-            `Missing_Items_${selectedDate}.xlsx`,
-            "Missing Items",
-            headers,
-            rows
-        );
-    } catch (err) { 
-        alert("Download failed"); 
-        console.error(err);
-    }
-}
-
-    async function filterReportByRange() {
-        const start = $('#feed-start-date').val();
-        const end = $('#feed-end-date').val();
-        if (!start || !end) {
-            alert("Please select both start and end dates.");
-            return;
-        }
-        if (start > end) {
-            alert("Start date cannot be after end date.");
-            return;
-        }
-        try {
-            const response = await fetch(`/api/logs?start_date=${encodeURIComponent(start)}&end_date=${encodeURIComponent(end)}&limit=${MAX_LIVE_ROWS}`);
-            if (!response.ok) {
-                const err = await response.json();
-                alert(err.detail || "Unable to filter by date range.");
-                return;
-            }
-            const logs = (await response.json()).slice(0, MAX_LIVE_ROWS);
-            monitoringTable.clear();
-            logs.forEach(log => addRow(log, false));
-            monitoringTable.draw(false);
-            monitoringTable.page('first').draw('page');
-        } catch (err) { console.error(err); }
-    }
-
-    async function downloadFullInventory() {
-        try {
-            const res = await fetch('/api/all-inventory');
-            const data = await res.json();
-            if (data.length === 0) { alert("Inventory is empty!"); return; }
-            const preferredColumns = [
-                "tag_id",
-                "item_name",
-                "category",
-                "metal_type",
-                "purity",
-                "huid",
-                "weight",
-                "price",
-                "timestamp"
-            ];
-            const { headers, rows } = buildOrderedCsvRows(data, preferredColumns);
-            downloadAutoWidthXlsx(
-                `Full_Inventory_Report_${new Date().toISOString().split('T')[0]}.xlsx`,
-                "Full Inventory",
-                headers,
-                rows
-            );
-        } catch (err) { alert("Download failed!"); }
-    }
-
-async function registerNewUser() {
-    const msg = document.getElementById('user-action-msg');
-    const userData = {
-        username: document.getElementById('new_username').value.trim(),
-        password: document.getElementById('new_password').value.trim(),
-        role: document.getElementById('new_role').value
-    };
-
-    if (!userData.username || !userData.password) {
-        msg.className = 'text-xs font-semibold mt-4 text-red-700';
-        msg.textContent = 'Username and password required.';
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/add-user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(userData)
-        });
-
-        if (response.ok) {
-            msg.className = 'text-xs font-semibold mt-4 text-emerald-600';
-            msg.textContent = 'User created successfully.';
-            document.getElementById('addUserForm').reset();
-        } else {
-            const error = await response.json();
-            msg.className = 'text-xs font-semibold mt-4 text-red-700';
-            msg.textContent = error.detail || 'Unable to create user.';
-        }
-    } catch (err) {
-        msg.className = 'text-xs font-semibold mt-4 text-red-700';
-        msg.textContent = 'Network error while creating user.';
-    }
-}
-</script>
-</body>
-</html>
