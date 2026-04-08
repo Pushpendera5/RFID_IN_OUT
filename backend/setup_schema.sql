@@ -12,7 +12,7 @@ BEGIN
         purity NVARCHAR(50) NULL,
         [weight] FLOAT NULL,
         huid NVARCHAR(50) NULL,
-        price FLOAT NULL,
+        piece FLOAT NULL,
         [timestamp] NVARCHAR(100) NULL,
         CONSTRAINT PK_inventory PRIMARY KEY CLUSTERED (tag_id)
     );
@@ -27,7 +27,7 @@ BEGIN
         item_name NVARCHAR(255) NULL,
         category NVARCHAR(100) NULL,
         [weight] FLOAT NULL,
-        price FLOAT NULL,
+        piece FLOAT NULL,
         huid NVARCHAR(50) NULL,
         direction NVARCHAR(10) NULL,
         [timestamp] NVARCHAR(50) NULL,
@@ -67,6 +67,35 @@ BEGIN
     ALTER TABLE dbo.users
     ADD [role] NVARCHAR(20) NOT NULL
         CONSTRAINT DF_users_role_legacy DEFAULT ('staff') WITH VALUES;
+END;
+
+/* backward-compat: ensure piece exists and copy old price data */
+IF OBJECT_ID(N'dbo.inventory', N'U') IS NOT NULL
+   AND COL_LENGTH('dbo.inventory', 'piece') IS NULL
+BEGIN
+    ALTER TABLE dbo.inventory ADD piece FLOAT NULL;
+END;
+
+IF OBJECT_ID(N'dbo.scan_logs', N'U') IS NOT NULL
+   AND COL_LENGTH('dbo.scan_logs', 'piece') IS NULL
+BEGIN
+    ALTER TABLE dbo.scan_logs ADD piece FLOAT NULL;
+END;
+
+IF OBJECT_ID(N'dbo.inventory', N'U') IS NOT NULL
+   AND COL_LENGTH('dbo.inventory', 'price') IS NOT NULL
+BEGIN
+    UPDATE dbo.inventory
+    SET piece = price
+    WHERE piece IS NULL AND price IS NOT NULL;
+END;
+
+IF OBJECT_ID(N'dbo.scan_logs', N'U') IS NOT NULL
+   AND COL_LENGTH('dbo.scan_logs', 'price') IS NOT NULL
+BEGIN
+    UPDATE dbo.scan_logs
+    SET piece = price
+    WHERE piece IS NULL AND price IS NOT NULL;
 END;
 
 PRINT 'Schema setup completed successfully.';

@@ -373,8 +373,8 @@ function addRow(d, drawNow = true) {
     const directionClass = d.direction === 'IN' ? 'status-chip status-chip-in' : 'status-chip status-chip-out';
     const badge = `<div class="text-right"><span class="${directionClass}">${d.direction || '-'}</span></div>`;
     const sortKey = Number(d.id || Date.now() / 1000);
-    const parsedPrice = Number(d.price || 0);
-    const priceLabel = Number.isFinite(parsedPrice) ? parsedPrice.toLocaleString('en-IN') : (d.price || 0);
+    const parsedPiece = Number(d.piece || 0);
+    const pieceLabel = Number.isFinite(parsedPiece) ? parsedPiece.toLocaleString('en-IN') : (d.piece || 0);
     if (monitoringTable.rows().count() >= MAX_LIVE_ROWS) {
         const lastIndex = monitoringTable.rows().indexes().toArray().pop();
         if (lastIndex !== undefined) monitoringTable.row(lastIndex).remove();
@@ -386,7 +386,7 @@ function addRow(d, drawNow = true) {
         `<div class="flex flex-col"><span class="item-name">${d.item_name || '-'}</span><span class="item-sub">${d.huid || '-'}</span></div>`,
         `<span class="font-semibold text-slate-300">${d.category || '-'}</span>`,
         `<span class="font-semibold text-slate-100">${d.weight || 0}g</span>`,
-        `<span class="font-black price-cell">INR ${priceLabel}</span>`,
+        `<span class="font-black piece-cell">${pieceLabel}</span>`,
         badge,
         sortKey
     ]);
@@ -483,7 +483,7 @@ async function refreshStats() {
         $('#reg-purity').val('');
         $('#reg-huid').val('');
         $('#reg-weight').val('');
-        $('#reg-price').val('');
+        $('#reg-piece').val('');
     }
 
     function fillRegistrationFields(item) {
@@ -493,7 +493,7 @@ async function refreshStats() {
         $('#reg-purity').val(item.purity || '');
         $('#reg-huid').val(item.huid || '');
         $('#reg-weight').val(item.weight ?? '');
-        $('#reg-price').val(item.price ?? '');
+        $('#reg-piece').val(item.piece ?? '');
     }
 
     async function fetchAndFillItemByTag(tagId, silentNotFound = true) {
@@ -561,7 +561,7 @@ async function refreshStats() {
             purity: $('#reg-purity').val(),
             weight: parseFloat($('#reg-weight').val()) || 0,
             huid: $('#reg-huid').val(),
-            price: parseFloat($('#reg-price').val()) || 0
+            piece: parseFloat($('#reg-piece').val()) || 0
         };
     }
 
@@ -583,8 +583,8 @@ async function refreshStats() {
         const rawWeight = $('#reg-weight').val();
         if (rawWeight !== '') payload.weight = parseFloat(rawWeight);
 
-        const rawPrice = $('#reg-price').val();
-        if (rawPrice !== '') payload.price = parseFloat(rawPrice);
+        const rawPiece = $('#reg-piece').val();
+        if (rawPiece !== '') payload.piece = parseFloat(rawPiece);
 
         return payload;
     }
@@ -682,13 +682,17 @@ async function refreshStats() {
 
   function buildOrderedCsvRows(data, preferredOrder = []) {
     if (!Array.isArray(data) || data.length === 0) return { headers: [], rows: [] };
+    const headerLabelMap = {
+      piece: "Piece"
+    };
     const firstRowKeys = Object.keys(data[0]);
     const orderedPreferred = preferredOrder.filter(k => firstRowKeys.includes(k));
     const remaining = firstRowKeys.filter(k => !orderedPreferred.includes(k));
-    const headers = [...orderedPreferred, ...remaining];
-    const rows = data.map((row, idx) => headers.map((h) => {
-      if (h === "sr_no") return idx + 1;
-      const value = row[h];
+    const keys = [...orderedPreferred, ...remaining];
+    const headers = keys.map((key) => headerLabelMap[key] || key);
+    const rows = data.map((row, idx) => keys.map((key) => {
+      if (key === "sr_no") return idx + 1;
+      const value = row[key];
       return value === undefined || value === null ? "" : value;
     }));
     return { headers, rows };
@@ -817,7 +821,7 @@ async function refreshStats() {
                 "purity",
                 "huid",
                 "weight",
-                "price",
+                "piece",
                 "timestamp"
             ];
             const { headers, rows } = buildOrderedCsvRows(data, preferredColumns);

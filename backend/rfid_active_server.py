@@ -4,7 +4,7 @@ import logging
 import os
 from datetime import datetime
 from time import sleep, time
-from typing import List
+from typing import Dict, List, Optional
 from urllib.error import URLError, HTTPError
 from urllib.request import Request, urlopen
 
@@ -41,6 +41,13 @@ def normalize_epc(epc_value) -> str:
     if isinstance(epc_value, bytes):
         return epc_value.decode("ascii", errors="ignore").upper()
     return str(epc_value).strip().upper()
+
+
+def parse_rssi(value):
+    try:
+        return int(str(value).strip())
+    except (TypeError, ValueError):
+        return None
 
 
 def as_tag_list(tags):
@@ -111,26 +118,29 @@ class TagPrinter:
             epc_value = tag.get("EPC") or tag.get("EPC-96") or tag.get("EPCData")
             epc = normalize_epc(epc_value)
             antenna = tag.get("AntennaID", "-")
-            rssi = tag.get("PeakRSSI", "-")
+            rssi_raw = tag.get("PeakRSSI", "-")
+            rssi = parse_rssi(rssi_raw)
             seen_count = tag.get("TagSeenCount", 1)
-            line = f"[{now}] TAG EPC={epc} ANT={antenna} RSSI={rssi} COUNT={seen_count}"
+            line = f"[{now}] TAG EPC={epc} ANT={antenna} RSSI={rssi_raw} COUNT={seen_count}"
             print(line, flush=True)
             append_event_log(line)
             if not epc:
                 LOGGER.warning("Empty EPC received. Raw tag keys=%s", sorted(tag.keys()))
                 continue
-            self.push_to_app(epc, antenna)
+            self.push_to_app(epc, antenna, rssi)
 
-    def push_to_app(self, epc: str, antenna) -> None:
+    def push_to_app(self, epc: str, antenna, rssi) -> None:
         if not self.api_url:
             return
 
-        payload = json.dumps(
-            {
-                "tag_id": epc,
-                "antenna_id": str(antenna),
-            }
-        ).encode("utf-8")
+        payload_data = {
+            "tag_id": epc,
+            "antenna_id": str(antenna),
+        }
+        if isinstance(rssi, int):
+            payload_data["rssi"] = rssi
+
+        payload = json.dumps(payload_data).encode("utf-8")
 
         headers = {"Content-Type": "application/json"}
         if self.api_token:
@@ -165,37 +175,40 @@ def build_reader(
     report_every_n_tags: int,
     report_timeout_ms: int,
     session: int,
+    tx_power_dbm: Optional[Dict[int, float]],
     tag_printer: TagPrinter,
 ) -> LLRPReaderClient:
-    reader_config = LLRPReaderConfig(
-        {
-            "antennas": antennas,
-            "start_inventory": True,
-            "disconnect_when_done": False,
-            "reset_on_connect": True,
-            "reconnect": False,
-            "session": session,
-            "keepalive_interval": 30000,
-            "report_every_n_tags": report_every_n_tags,
-            "report_timeout_ms": report_timeout_ms,
-            "tag_content_selector": {
-                "EnableROSpecID": False,
-                "EnableSpecIndex": False,
-                "EnableInventoryParameterSpecID": False,
-                "EnableAntennaID": True,
-                "EnableChannelIndex": False,
-                "EnablePeakRSSI": True,
-                "EnableFirstSeenTimestamp": False,
-                "EnableLastSeenTimestamp": True,
-                "EnableTagSeenCount": True,
-                "EnableAccessSpecID": False,
-                "C1G2EPCMemorySelector": {
-                    "EnableCRC": False,
-                    "EnablePCBits": False,
-                },
+    cfg = {
+        "antennas": antennas,
+        "start_inventory": True,
+        "disconnect_when_done": False,
+        "reset_on_connect": True,
+        "reconnect": False,
+        "session": session,
+        "keepalive_interval": 30000,
+        "report_every_n_tags": report_every_n_tags,
+        "report_timeout_ms": report_timeout_ms,
+        "tag_content_selector": {
+            "EnableROSpecID": False,
+            "EnableSpecIndex": False,
+            "EnableInventoryParameterSpecID": False,
+            "EnableAntennaID": True,
+            "EnableChannelIndex": False,
+            "EnablePeakRSSI": True,
+            "EnableFirstSeenTimestamp": False,
+            "EnableLastSeenTimestamp": True,
+            "EnableTagSeenCount": True,
+            "EnableAccessSpecID": False,
+            "C1G2EPCMemorySelector": {
+                "EnableCRC": False,
+                "EnablePCBits": False,
             },
-        }
-    )
+        },
+    }
+    if tx_power_dbm:
+        cfg["tx_power_dbm"] = tx_power_dbm
+
+    reader_config = LLRPReaderConfig(cfg)
 
     reader = LLRPReaderClient(host, port, reader_config)
     reader.add_tag_report_callback(tag_printer)
@@ -212,65 +225,86 @@ def run_forever(
     report_every_n_tags: int,
     report_timeout_ms: int,
     session: int,
+    antenna_cycle_seconds: float,
     drop_stale_reports: bool,
     stale_grace_seconds: float,
     api_url: str,
     api_timeout_seconds: float,
     api_token: str,
+    tx_power_dbm: Optional[Dict[int, float]] = None,
 ) -> int:
-    print(f"Starting reader client for {host}:{port} on antennas {antennas}", flush=True)
+    cycle_seconds = max(0.0, float(antenna_cycle_seconds or 0.0))
+    cycle_mode = cycle_seconds > 0.0 and len(antennas) > 1
+    print(
+        f"Starting reader client for {host}:{port} on antennas {antennas} "
+        f"tx_power_dbm={tx_power_dbm} cycle_seconds={cycle_seconds}",
+        flush=True,
+    )
     print("Press Ctrl+C to stop.", flush=True)
 
     while True:
-        reader = None
-        tag_printer = TagPrinter(
-            drop_stale_reports=drop_stale_reports,
-            stale_grace_seconds=stale_grace_seconds,
-            api_url=api_url,
-            api_timeout_seconds=api_timeout_seconds,
-            api_token=api_token,
-        )
-        tag_printer.begin_session()
+        antenna_batches = [[ant] for ant in antennas] if cycle_mode else [antennas]
+        had_cycle_error = False
 
-        try:
-            reader = build_reader(
-                host,
-                port,
-                antennas,
-                report_every_n_tags=report_every_n_tags,
-                report_timeout_ms=report_timeout_ms,
-                session=session,
-                tag_printer=tag_printer,
+        for active_antennas in antenna_batches:
+            reader = None
+            tag_printer = TagPrinter(
+                drop_stale_reports=drop_stale_reports,
+                stale_grace_seconds=stale_grace_seconds,
+                api_url=api_url,
+                api_timeout_seconds=api_timeout_seconds,
+                api_token=api_token,
             )
-            print(f"Connecting to reader {host}:{port}...", flush=True)
-            reader.connect()
-            print("Connected. Waiting for tags...", flush=True)
+            tag_printer.begin_session()
 
-            while reader.is_alive():
-                reader.join(1)
+            try:
+                reader = build_reader(
+                    host,
+                    port,
+                    active_antennas,
+                    report_every_n_tags=report_every_n_tags,
+                    report_timeout_ms=report_timeout_ms,
+                    session=session,
+                    tx_power_dbm=tx_power_dbm,
+                    tag_printer=tag_printer,
+                )
+                print(f"Connecting to reader {host}:{port} antennas={active_antennas}...", flush=True)
+                reader.connect()
+                print("Connected. Waiting for tags...", flush=True)
 
-            LOGGER.warning("Reader worker thread ended.")
+                if cycle_mode:
+                    deadline = time() + cycle_seconds
+                    while reader.is_alive() and time() < deadline:
+                        reader.join(0.25)
+                else:
+                    while reader.is_alive():
+                        reader.join(1)
+                    LOGGER.warning("Reader worker thread ended.")
 
-        except KeyboardInterrupt:
-            print("\nStopping reader client...", flush=True)
-            if reader:
-                try:
-                    reader.disconnect(timeout=2)
-                except Exception:
-                    pass
-            LLRPReaderClient.disconnect_all_readers()
-            return 0
-
-        except Exception as exc:
-            LOGGER.error("Reader error: %s", exc)
-
-        finally:
-            if reader:
-                try:
-                    if reader.is_alive():
+            except KeyboardInterrupt:
+                print("\nStopping reader client...", flush=True)
+                if reader:
+                    try:
                         reader.disconnect(timeout=2)
-                except Exception:
-                    pass
+                    except Exception:
+                        pass
+                LLRPReaderClient.disconnect_all_readers()
+                return 0
+
+            except Exception as exc:
+                had_cycle_error = True
+                LOGGER.error("Reader error: %s", exc)
+
+            finally:
+                if reader:
+                    try:
+                        if reader.is_alive():
+                            reader.disconnect(timeout=2)
+                    except Exception:
+                        pass
+
+        if cycle_mode and not had_cycle_error:
+            continue
 
         print(f"Reconnecting in {reconnect_delay} seconds...", flush=True)
         try:
@@ -392,11 +426,13 @@ def main() -> int:
         args.report_every_n_tags,
         args.report_timeout_ms,
         args.session,
+        float(reader_cfg.get("ANTENNA_CYCLE_SECONDS", 0.0)),
         (False if args.allow_stale_reports else default_drop_stale),
         args.stale_grace_seconds,
         args.api_url,
         args.api_timeout_seconds,
         args.api_token,
+        (reader_cfg.get("TX_POWER_DBM") or None),
     )
 
 
