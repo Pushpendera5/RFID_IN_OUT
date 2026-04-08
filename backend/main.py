@@ -64,8 +64,11 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 EVENT_LOG_FILE = os.path.join(BASE_DIR, "reader_events.log")
 
 global_loop: Optional[asyncio.AbstractEventLoop] = None
-tag_queue: asyncio.Queue[tuple[str, int]] = asyncio.Queue()
+tag_queue: asyncio.Queue[tuple[str, int, Optional[int]]] = asyncio.Queue()
 last_scan_tracker: dict = {}
+pending_tag_events: dict[str, dict] = {}
+pending_tag_tasks: dict[str, asyncio.Task] = {}
+pending_tag_lock: Optional[asyncio.Lock] = None
 reader_lock_handle = None
 LOGGER = logging.getLogger("rfid_backend")
 
@@ -113,6 +116,13 @@ def parse_antenna_id(value) -> int:
         return int(str(value).strip())
     except (TypeError, ValueError):
         return 1
+
+
+def parse_rssi_value(value) -> Optional[int]:
+    try:
+        return int(str(value).strip())
+    except (TypeError, ValueError):
+        return None
 
 
 def clean_tag_id(raw_data) -> str:
@@ -369,7 +379,7 @@ class JewelleryItem(Base):
     purity = Column(String(50))
     weight = Column(Float)
     huid = Column(String(50))
-    price = Column(Float)
+    piece = Column(Float)
     timestamp = Column(String(100))
 
 
@@ -380,7 +390,7 @@ class ScanLog(Base):
     item_name = Column(String(255))
     category = Column(String(100))
     weight = Column(Float)
-    price = Column(Float)
+    piece = Column(Float)
     huid = Column(String(50))
     direction = Column(String(10))
     timestamp = Column(String(50))
@@ -427,6 +437,41 @@ def ensure_users_schema() -> None:
         log_status(f"Users schema check skipped: {exc}")
 
 
+def ensure_piece_schema() -> None:
+    try:
+        inspector = sa_inspect(engine)
+
+        def _ensure_piece_column(table_name: str) -> None:
+            columns_info = inspector.get_columns(table_name)
+            columns = {col["name"].lower() for col in columns_info}
+            has_piece = "piece" in columns
+            has_price = "price" in columns
+
+            with engine.begin() as conn:
+                if not has_piece:
+                    if engine.dialect.name.startswith("mssql"):
+                        conn.execute(text(f"ALTER TABLE {table_name} ADD piece FLOAT NULL"))
+                    else:
+                        conn.execute(text(f"ALTER TABLE {table_name} ADD COLUMN piece FLOAT"))
+
+                if has_price:
+                    conn.execute(
+                        text(
+                            f"UPDATE {table_name} "
+                            "SET piece = price "
+                            "WHERE piece IS NULL AND price IS NOT NULL"
+                        )
+                    )
+
+        if inspector.has_table("inventory"):
+            _ensure_piece_column("inventory")
+        if inspector.has_table("scan_logs"):
+            _ensure_piece_column("scan_logs")
+
+    except Exception as exc:  # noqa: BLE001
+        log_status(f"Piece schema check skipped: {exc}")
+
+
 class ItemRegister(BaseModel):
     tag_id: str
     item_name: str
@@ -435,7 +480,7 @@ class ItemRegister(BaseModel):
     purity: str
     weight: float
     huid: Optional[str] = None
-    price: float
+    piece: float
 
 
 class ItemUpdate(BaseModel):
@@ -445,7 +490,7 @@ class ItemUpdate(BaseModel):
     purity: Optional[str] = None
     weight: Optional[float] = None
     huid: Optional[str] = None
-    price: Optional[float] = None
+    piece: Optional[float] = None
 
 
 class UserCreate(BaseModel):
@@ -617,7 +662,64 @@ def compute_transition_stats(rows) -> dict:
     }
 
 
-async def process_scan_event(tag_id: str, antenna_id: int):
+def pick_preferred_event(existing_event: dict, candidate_event: dict) -> dict:
+    existing_rssi = existing_event.get("rssi")
+    candidate_rssi = candidate_event.get("rssi")
+
+    if isinstance(existing_rssi, int) and isinstance(candidate_rssi, int):
+        if candidate_rssi > existing_rssi:
+            return candidate_event
+        return existing_event
+
+    if isinstance(candidate_rssi, int) and not isinstance(existing_rssi, int):
+        return candidate_event
+
+    return existing_event
+
+
+async def flush_pending_tag_event(tag_id: str, delay_seconds: float) -> None:
+    try:
+        await asyncio.sleep(delay_seconds)
+        if pending_tag_lock is None:
+            return
+
+        async with pending_tag_lock:
+            payload = pending_tag_events.pop(tag_id, None)
+            pending_tag_tasks.pop(tag_id, None)
+
+        if not payload:
+            return
+
+        await tag_queue.put((payload["tag_id"], payload["antenna_id"], payload.get("rssi")))
+    except asyncio.CancelledError:
+        return
+
+
+async def enqueue_scan_event(tag_id: str, antenna_id: int, rssi: Optional[int]) -> None:
+    coalesce_window_ms = max(0, int(getattr(config, "ANTENNA_COALESCE_WINDOW_MS", 0)))
+    if coalesce_window_ms <= 0 or pending_tag_lock is None:
+        await tag_queue.put((tag_id, antenna_id, rssi))
+        return
+
+    candidate_event = {
+        "tag_id": tag_id,
+        "antenna_id": antenna_id,
+        "rssi": rssi,
+    }
+
+    async with pending_tag_lock:
+        existing_event = pending_tag_events.get(tag_id)
+        if existing_event is None:
+            pending_tag_events[tag_id] = candidate_event
+            pending_tag_tasks[tag_id] = asyncio.create_task(
+                flush_pending_tag_event(tag_id, coalesce_window_ms / 1000.0)
+            )
+            return
+
+        pending_tag_events[tag_id] = pick_preferred_event(existing_event, candidate_event)
+
+
+async def process_scan_event(tag_id: str, antenna_id: int, rssi: Optional[int] = None):
     tag_id = clean_tag_id(tag_id)
     if not tag_id:
         return
@@ -642,9 +744,69 @@ async def process_scan_event(tag_id: str, antenna_id: int):
         )
         latest_direction = str(latest_log.direction).upper() if latest_log and latest_log.direction else ""
 
+        cache_entry_raw = last_scan_tracker.get(tag_id)
+        cache_entry = cache_entry_raw if isinstance(cache_entry_raw, dict) else {}
+        cache_direction = str(cache_entry.get("direction", "")).strip().upper()
+        cache_seen_at = cache_entry.get("time")
+        cache_antenna_raw = cache_entry.get("antenna_id")
+        cache_antenna_id: Optional[int] = None
+        if cache_antenna_raw is not None:
+            cache_antenna_id = parse_antenna_id(cache_antenna_raw)
+        if not isinstance(cache_seen_at, datetime.datetime):
+            cache_seen_at = None
+
+        direction_switch_guard_seconds = max(
+            0,
+            int(
+                getattr(
+                    config,
+                    "DIRECTION_SWITCH_GUARD_SECONDS",
+                    getattr(config, "OUT_BLOCK_AFTER_IN_SECONDS", 0),
+                )
+            ),
+        )
+        if (
+            direction_switch_guard_seconds > 0
+            and cache_seen_at is not None
+            and cache_antenna_id == antenna_id
+            and cache_direction in {"IN", "OUT"}
+            and cache_direction != direction
+        ):
+            elapsed = (current_time - cache_seen_at).total_seconds()
+            if elapsed < direction_switch_guard_seconds:
+                wait_left = int(direction_switch_guard_seconds - elapsed)
+                log_status(
+                    "Ignored rapid direction flip: "
+                    f"tag={tag_id} from={cache_direction} to={direction} "
+                    f"antenna={antenna_id} wait={wait_left}s"
+                )
+                return
+
         if direction == "IN" and latest_direction == "IN":
-            log_status(f"Ignored duplicate IN without OUT: tag={tag_id} antenna={antenna_id}")
-            return
+            cross_antenna_cache_hit = (
+                cache_direction == "IN"
+                and cache_antenna_id is not None
+                and cache_antenna_id != antenna_id
+            )
+            allow_pending_in_relog = bool(getattr(config, "ALLOW_PENDING_IN_RELOG", False))
+
+            if not allow_pending_in_relog and not cross_antenna_cache_hit:
+                log_status(f"Ignored duplicate IN without OUT: tag={tag_id} antenna={antenna_id}")
+                return
+
+            if allow_pending_in_relog and not cross_antenna_cache_hit:
+                relog_seconds = max(0, int(getattr(config, "PENDING_IN_RELOG_SECONDS", 0)))
+                if relog_seconds > 0 and latest_log:
+                    latest_in_seen_at = parse_scan_log_datetime(latest_log.date, latest_log.timestamp)
+                    if latest_in_seen_at is not None:
+                        elapsed = (current_time - latest_in_seen_at).total_seconds()
+                        if elapsed < relog_seconds:
+                            wait_left = int(relog_seconds - elapsed)
+                            log_status(
+                                f"Ignored duplicate IN due to relog window: "
+                                f"tag={tag_id} antenna={antenna_id} wait={wait_left}s"
+                            )
+                            return
 
         if direction == "IN":
             in_cooldown_seconds = max(
@@ -664,10 +826,13 @@ async def process_scan_event(tag_id: str, antenna_id: int):
                 if latest_in_log:
                     latest_in_seen_at = parse_scan_log_datetime(latest_in_log.date, latest_in_log.timestamp)
 
-                if not latest_in_seen_at and tag_id in last_scan_tracker:
-                    cache_entry = last_scan_tracker[tag_id]
-                    if str(cache_entry.get("direction", "")).upper() == "IN":
-                        latest_in_seen_at = cache_entry.get("time")
+                if (
+                    not latest_in_seen_at
+                    and cache_direction == "IN"
+                    and cache_antenna_id == antenna_id
+                    and cache_seen_at is not None
+                ):
+                    latest_in_seen_at = cache_seen_at
 
                 if latest_in_seen_at:
                     elapsed = (current_time - latest_in_seen_at).total_seconds()
@@ -678,10 +843,20 @@ async def process_scan_event(tag_id: str, antenna_id: int):
                         )
                         return
 
-        if tag_id in last_scan_tracker:
-            last_entry = last_scan_tracker[tag_id]
-            time_diff = (current_time - last_entry["time"]).total_seconds()
-            if last_entry["direction"] == direction and time_diff < config.SCAN_COOLDOWN_SECONDS:
+        scan_cooldown_seconds = max(0, int(getattr(config, "SCAN_COOLDOWN_SECONDS", 0)))
+        if (
+            scan_cooldown_seconds > 0
+            and cache_seen_at is not None
+            and cache_direction == direction
+            and cache_antenna_id == antenna_id
+        ):
+            time_diff = (current_time - cache_seen_at).total_seconds()
+            if time_diff < scan_cooldown_seconds:
+                wait_left = int(scan_cooldown_seconds - time_diff)
+                log_status(
+                    f"Ignored {direction} due to scan cooldown: "
+                    f"tag={tag_id} antenna={antenna_id} wait={wait_left}s"
+                )
                 return
 
         if direction == "OUT":
@@ -697,10 +872,8 @@ async def process_scan_event(tag_id: str, antenna_id: int):
                 if latest_log and latest_direction == "IN":
                     latest_seen_at = parse_scan_log_datetime(latest_log.date, latest_log.timestamp)
 
-                if not latest_seen_at and tag_id in last_scan_tracker:
-                    cache_entry = last_scan_tracker[tag_id]
-                    if cache_entry.get("direction") == "IN":
-                        latest_seen_at = cache_entry.get("time")
+                if not latest_seen_at and cache_direction == "IN" and cache_seen_at is not None:
+                    latest_seen_at = cache_seen_at
 
                 if latest_seen_at:
                     elapsed = (current_time - latest_seen_at).total_seconds()
@@ -716,7 +889,7 @@ async def process_scan_event(tag_id: str, antenna_id: int):
             item_name=item.item_name,
             category=item.category,
             weight=item.weight,
-            price=item.price,
+            piece=item.piece,
             huid=item.huid,
             direction=direction,
             timestamp=current_time.strftime("%I:%M:%S %p"),
@@ -726,7 +899,11 @@ async def process_scan_event(tag_id: str, antenna_id: int):
         db.commit()
         db.refresh(new_log)
 
-        last_scan_tracker[tag_id] = {"time": current_time, "direction": direction}
+        last_scan_tracker[tag_id] = {
+            "time": current_time,
+            "direction": direction,
+            "antenna_id": antenna_id,
+        }
 
         await manager.broadcast(
             {
@@ -738,7 +915,7 @@ async def process_scan_event(tag_id: str, antenna_id: int):
                 "timestamp": new_log.timestamp,
                 "date": new_log.date,
                 "huid": item.huid,
-                "price": item.price,
+                "piece": item.piece,
                 "weight": item.weight,
                 "category": item.category,
                 "antenna_id": antenna_id,
@@ -747,7 +924,8 @@ async def process_scan_event(tag_id: str, antenna_id: int):
         log_status(
             "REAL-TIME LOG: "
             f"tag={tag_id} item={item.item_name} antenna={antenna_id} "
-            f"direction={direction} weight={item.weight} price={item.price}"
+            f"direction={direction} rssi={rssi if rssi is not None else '-'} "
+            f"weight={item.weight} piece={item.piece}"
         )
     except Exception as exc:  # noqa: BLE001
         db.rollback()
@@ -758,9 +936,14 @@ async def process_scan_event(tag_id: str, antenna_id: int):
 
 async def queue_worker():
     while True:
-        tag_id, antenna_id = await tag_queue.get()
+        payload = await tag_queue.get()
         try:
-            await process_scan_event(tag_id, antenna_id)
+            if len(payload) >= 3:
+                tag_id, antenna_id, rssi = payload[0], payload[1], payload[2]
+            else:
+                tag_id, antenna_id = payload[0], payload[1]
+                rssi = None
+            await process_scan_event(tag_id, antenna_id, rssi)
         finally:
             tag_queue.task_done()
 
@@ -789,9 +972,28 @@ def start_embedded_active_reader() -> None:
     report_every_n_tags = int(active_cfg.get("REPORT_EVERY_N_TAGS", 1))
     report_timeout_ms = int(active_cfg.get("REPORT_TIMEOUT_MS", 0))
     session = int(active_cfg.get("SESSION", 0))
+    antenna_cycle_seconds = float(active_cfg.get("ANTENNA_CYCLE_SECONDS", 0.0))
     stale_grace_seconds = float(active_cfg.get("STALE_GRACE_SECONDS", 1.0))
     api_timeout_seconds = float(active_cfg.get("API_TIMEOUT_SECONDS", 1.0))
     drop_stale_reports = to_bool(active_cfg.get("DROP_STALE_REPORTS", False), default=False)
+    raw_tx_power_dbm = active_cfg.get("TX_POWER_DBM", {})
+    tx_power_dbm: Optional[dict[int, float]] = None
+    if isinstance(raw_tx_power_dbm, dict) and raw_tx_power_dbm:
+        parsed_tx_power_dbm: dict[int, float] = {}
+        for ant, value in raw_tx_power_dbm.items():
+            try:
+                parsed_tx_power_dbm[int(ant)] = float(value)
+            except (TypeError, ValueError):
+                continue
+        if parsed_tx_power_dbm:
+            expected_antennas = set(antennas)
+            if set(parsed_tx_power_dbm.keys()) == expected_antennas:
+                tx_power_dbm = parsed_tx_power_dbm
+            else:
+                log_status(
+                    "Ignoring RFID_ACTIVE_TX_POWER_DBM: antennas mismatch "
+                    f"expected={sorted(expected_antennas)} got={sorted(parsed_tx_power_dbm.keys())}"
+                )
     push_token = str(active_cfg.get("PUSH_TOKEN", "")).strip()
     single_instance_lock = to_bool(active_cfg.get("SINGLE_INSTANCE_LOCK", True), default=True)
     lock_file_path = str(active_cfg.get("LOCK_FILE_PATH", "reader.lock"))
@@ -812,11 +1014,13 @@ def start_embedded_active_reader() -> None:
                 report_every_n_tags=report_every_n_tags,
                 report_timeout_ms=report_timeout_ms,
                 session=session,
+                antenna_cycle_seconds=antenna_cycle_seconds,
                 drop_stale_reports=drop_stale_reports,
                 stale_grace_seconds=stale_grace_seconds,
                 api_url=push_url,
                 api_timeout_seconds=api_timeout_seconds,
                 api_token=push_token,
+                tx_power_dbm=tx_power_dbm,
             )
         except Exception as exc:  # noqa: BLE001
             log_status(f"Embedded reader crashed: {exc}")
@@ -826,7 +1030,9 @@ def start_embedded_active_reader() -> None:
     log_status(
         "Embedded reader started "
         f"(host={reader_host}:{reader_port}, antennas={antennas}, push_url={push_url}, "
-        f"drop_stale_reports={drop_stale_reports}, single_lock={single_instance_lock})"
+        f"drop_stale_reports={drop_stale_reports}, cycle_s={antenna_cycle_seconds}, "
+        f"tx_power_dbm={tx_power_dbm}, "
+        f"single_lock={single_instance_lock})"
     )
 
 
@@ -847,7 +1053,7 @@ async def handle_fixed_reader(reader, writer):
                         continue
                     tag_id = clean_tag_id(parts[0])
                     antenna_id = parse_antenna_id(parts[1])
-                    await tag_queue.put((tag_id, antenna_id))
+                    await enqueue_scan_event(tag_id, antenna_id, None)
             except Exception:  # noqa: BLE001
                 continue
     except asyncio.CancelledError:
@@ -863,8 +1069,9 @@ async def handle_fixed_reader(reader, writer):
 
 @app.on_event("startup")
 async def startup():
-    global global_loop
+    global global_loop, pending_tag_lock
     global_loop = asyncio.get_running_loop()
+    pending_tag_lock = asyncio.Lock()
 
     issues = validate_runtime_config()
     for issue in issues:
@@ -874,6 +1081,7 @@ async def startup():
         raise RuntimeError("Unsafe production configuration. Review config.py / env settings.")
 
     initialize_sqlalchemy_schema()
+    ensure_piece_schema()
     ensure_users_schema()
     ensure_bootstrap_admin()
     asyncio.create_task(queue_worker())
@@ -883,7 +1091,10 @@ async def startup():
         f"app_env={getattr(config, 'APP_ENV', 'development')} "
         f"scan_cooldown={config.SCAN_COOLDOWN_SECONDS}s "
         f"in_reentry_cooldown={getattr(config, 'IN_REENTRY_COOLDOWN_SECONDS', config.SCAN_COOLDOWN_SECONDS)}s "
-        f"out_block_after_in={getattr(config, 'OUT_BLOCK_AFTER_IN_SECONDS', 0)}s"
+        f"out_block_after_in={getattr(config, 'OUT_BLOCK_AFTER_IN_SECONDS', 0)}s "
+        "direction_switch_guard="
+        f"{getattr(config, 'DIRECTION_SWITCH_GUARD_SECONDS', getattr(config, 'OUT_BLOCK_AFTER_IN_SECONDS', 0))}s "
+        f"antenna_coalesce_window={getattr(config, 'ANTENNA_COALESCE_WINDOW_MS', 0)}ms"
     )
 
     log_status("Handheld reader server disabled by configuration.")
@@ -1084,25 +1295,18 @@ def report_summary(target_date: str, _user=Depends(require_authenticated_user)):
     db = SessionLocal()
     try:
         day_logs = (
-            db.query(ScanLog)
+            db.query(ScanLog.id, ScanLog.tag_id, ScanLog.direction)
             .filter(ScanLog.date == normalized_date)
-            .order_by(desc(ScanLog.id))
+            .order_by(ScanLog.id.asc())
             .all()
         )
-        in_count = sum(1 for row in day_logs if row.direction == "IN")
-        out_count = sum(1 for row in day_logs if row.direction == "OUT")
-
-        latest_direction_by_tag = {}
-        for row in day_logs:
-            if row.tag_id not in latest_direction_by_tag:
-                latest_direction_by_tag[row.tag_id] = row.direction
-        pending_count = sum(1 for direction in latest_direction_by_tag.values() if direction == "IN")
+        normalized = compute_transition_stats(day_logs)
 
         return {
             "target_date": normalized_date,
-            "in_count": in_count,
-            "out_count": out_count,
-            "pending_count": pending_count,
+            "in_count": normalized["in"],
+            "out_count": normalized["out"],
+            "pending_count": normalized["pending"],
         }
     finally:
         db.close()
@@ -1147,7 +1351,7 @@ def missing_items(target_date: str, _user=Depends(require_authenticated_user)):
                     "category": item.category if item else row.category,
                     "huid": item.huid if item else row.huid,
                     "weight": item.weight if item else row.weight,
-                    "price": item.price if item else row.price,
+                    "piece": item.piece if item else row.piece,
                     "last_direction": row.direction,
                     "last_timestamp": row.timestamp,
                     "date": normalized_date,
@@ -1258,7 +1462,7 @@ def get_item_by_tag(tag_id: str, _user=Depends(require_authenticated_user)):
             "purity": item.purity,
             "weight": item.weight,
             "huid": item.huid,
-            "price": item.price,
+            "piece": item.piece,
             "timestamp": item.timestamp,
         }
     finally:
@@ -1283,8 +1487,9 @@ async def receive_data(request: Request, data: dict):
 
     antenna_raw = data.get("antenna_id", data.get("antenna", 1))
     antenna_id = parse_antenna_id(antenna_raw)
-    await tag_queue.put((tag_id, antenna_id))
-    return {"status": "ok", "tag_id": tag_id, "antenna_id": antenna_id}
+    rssi = parse_rssi_value(data.get("rssi", data.get("peak_rssi")))
+    await enqueue_scan_event(tag_id, antenna_id, rssi)
+    return {"status": "ok", "tag_id": tag_id, "antenna_id": antenna_id, "rssi": rssi}
 
 
 @app.post("/rfid-read")

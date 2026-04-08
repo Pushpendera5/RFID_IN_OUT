@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>RFID JEWELLERY SHOP | Jewellery Operations Studio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -325,7 +325,8 @@
             width: 100%;
         }
         #dashboard-page .panel { background: linear-gradient(150deg, rgba(255, 254, 250, 0.98), rgba(255, 244, 223, 0.94)); }
-        #registration-page .panel { background: linear-gradient(150deg, rgba(255, 255, 253, 0.98), rgba(242, 253, 248, 0.95)); }
+        #registration-page .panel,
+        #history-page .panel { background: linear-gradient(150deg, rgba(255, 255, 253, 0.98), rgba(242, 253, 248, 0.95)); }
         #user-management-page .panel { background: linear-gradient(150deg, rgba(255, 254, 251, 0.98), rgba(239, 248, 255, 0.95)); }
 
         .panel-title {
@@ -555,7 +556,8 @@
             color: #0f4c5c !important;
         }
         #dashboard-page .panel { background: linear-gradient(150deg, rgba(248, 250, 252, 0.98), rgba(239, 246, 255, 0.96)) !important; }
-        #registration-page .panel { background: linear-gradient(150deg, rgba(248, 250, 252, 0.98), rgba(236, 253, 245, 0.96)) !important; }
+        #registration-page .panel,
+        #history-page .panel { background: linear-gradient(150deg, rgba(248, 250, 252, 0.98), rgba(236, 253, 245, 0.96)) !important; }
         #user-management-page .panel { background: linear-gradient(150deg, rgba(248, 250, 252, 0.98), rgba(226, 232, 240, 0.95)) !important; }
         .panel-title { color: #020617 !important; font-weight: 700 !important; }
         .panel-sub { color: #334155 !important; font-weight: 400 !important; }
@@ -693,7 +695,7 @@
         .text-slate-300 { color: #1e293b !important; }
         .text-slate-100 { color: #020617 !important; }
         .text-amber-300, .text-yellow-100, .text-pink-300, .text-rose-600 { color: #1d4ed8 !important; }
-        .price-cell { color: #065f46 !important; font-weight: 600 !important; }
+        .piece-cell { color: #065f46 !important; font-weight: 600 !important; }
         .bg-amber-500, .bg-rose-400 { background-color: #64748b !important; }
         .app-footer {
             width: 100%;
@@ -716,7 +718,7 @@
             font-weight: 500 !important;
         }
         .app-footer .footer-author {
-            color: #0f172a !important;
+            color: #3cebe8 !important;
             font-family: 'Outfit', sans-serif;
             font-weight: 600 !important;
             letter-spacing: 0.06em !important;
@@ -1076,7 +1078,8 @@
             box-shadow: 0 8px 16px rgba(14, 116, 144, 0.08) !important;
         }
         #dashboard-page .panel:not(.feed-panel) { background: #f0f9ff !important; }
-        #registration-page .panel { background: #ecfdf5 !important; }
+        #registration-page .panel,
+        #history-page .panel { background: #ecfdf5 !important; }
         #user-management-page .panel {
             background: linear-gradient(145deg, #e0f2fe 0%, #dbeafe 52%, #f0f9ff 100%) !important;
             border-color: rgba(56, 189, 248, 0.38) !important;
@@ -1143,9 +1146,95 @@
             animation: none !important;
         }
 
-        /* Global text darkness boost */
-        .studio { color: #0b1220 !important; }
-        .nav-link:not(.nav-link-active),
+        /* Login-like dark 3D glass theme override */
+        body {
+            background: #0a0a0f !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .bg-mesh {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            filter: blur(60px);
+            background:
+                radial-gradient(circle at 20% 30%, rgba(28, 92, 28, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
+        }
+        .bg-matrix {
+            background: none !important;
+            opacity: 1 !important;
+            mask-image: none !important;
+            filter: blur(56px);
+            z-index: 0 !important;
+            animation: meshFloat 18s ease-in-out infinite alternate;
+        }
+        .bg-matrix::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(28, 92, 28, 0.24) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.24) 0%, transparent 50%);
+        }
+        @keyframes meshFloat {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            50% { transform: translate3d(2%, -2%, 0) scale(1.04); }
+            100% { transform: translate3d(-1%, 1%, 0) scale(1.03); }
+        }
+        .glass,
+        .panel,
+        .spotlight,
+        .kpi,
+        .summary,
+        .scanner,
+        .nav-ribbon,
+        .feed-panel,
+        #user-management-page .panel,
+        #dashboard-page .panel,
+        #registration-page .panel,
+        #history-page .panel {
+            background: rgba(255, 255, 255, 0.03) !important;
+            backdrop-filter: blur(18px) !important;
+            -webkit-backdrop-filter: blur(18px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.55) !important;
+        }
+        .top-dock { background: rgba(255, 255, 255, 0.04) !important; }
+        .panel:hover,
+        .kpi:hover,
+        .summary:hover,
+        .spotlight:hover {
+            transform: translateY(-2px);
+            transition: transform 0.28s ease;
+        }
+        .nav-link {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-color: rgba(255, 255, 255, 0.12) !important;
+            color: #d8e6ff !important;
+        }
+        .nav-link:hover {
+            border-color: rgba(59, 130, 246, 0.5) !important;
+            color: #ffffff !important;
+        }
+        .nav-link-active {
+            background: linear-gradient(135deg, #1C5C1C 0%, #144014 100%) !important;
+            color: #ffffff !important;
+            border-color: rgba(28, 92, 28, 0.72) !important;
+            box-shadow: 0 8px 25px rgba(28, 92, 28, 0.55) !important;
+        }
+        .brand-title { color: #ffffff !important; }
+        .brand-sub { color: #94a3b8 !important; }
+        .studio,
         .panel-title,
         .spot-title,
         .kpi-v,
@@ -1154,8 +1243,10 @@
         .tag-chip,
         .live-page-btn,
         #monitoringTable tbody td,
-        #monitoringTable_wrapper {
-            color: #0b1220 !important;
+        #monitoringTable_wrapper,
+        #registeredItemsTable_wrapper,
+        #registeredItemsTable tbody td {
+            color: #e2e8f0 !important;
         }
         .panel-sub,
         .spot-text,
@@ -1166,42 +1257,453 @@
         #monitoringTable_wrapper .dataTables_filter label,
         #monitoringTable_wrapper .dataTables_length label,
         #monitoringTable_wrapper .dataTables_info,
+        #registeredItemsTable_wrapper .dataTables_info,
         .live-meta,
-        .live-controls .field-label,
-        .text-slate-400,
-        .text-slate-300,
-        .text-slate-100 {
-            color: #1f2937 !important;
+        .live-controls .field-label {
+            color: #94a3b8 !important;
         }
         input[type="date"], input[type="text"], input[type="number"], input[type="password"], select {
-            color: #0b1220 !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+            color: #f8fafc !important;
         }
-        #monitoringTable thead th {
-            background: #bae6fd !important;
-            color: #0b1220 !important;
+        #monitoringTable thead th,
+        #registeredItemsTable thead th {
+            background: rgba(255, 255, 255, 0.07) !important;
+            color: #cbd5e1 !important;
+            border-bottom-color: rgba(255, 255, 255, 0.12) !important;
         }
-        /* Ocean blue only on plain containers */
-        .nav-ribbon,
-        #user-management-page .panel,
-        .feed-panel {
-            background: linear-gradient(145deg, #e6f6ff 0%, #d9efff 52%, #f2fbff 100%) !important;
-            border-color: rgba(56, 189, 248, 0.38) !important;
+        #monitoringTable tbody td,
+        #registeredItemsTable tbody td {
+            background: rgba(255, 255, 255, 0.02) !important;
+            border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+            font-size: 0.78rem !important;
+            line-height: 1.22 !important;
         }
-        .feed-panel .filters {
-            background: linear-gradient(145deg, #eef8ff 0%, #e0f2fe 100%) !important;
-            border-color: rgba(56, 189, 248, 0.32) !important;
+        #monitoringTable tbody tr:nth-child(even) td,
+        #registeredItemsTable tbody tr:nth-child(even) td {
+            background: rgba(255, 255, 255, 0.04) !important;
         }
-        /* Big container shadow boost */
+        #monitoringTable tbody tr:hover td,
+        #registeredItemsTable tbody tr:hover td {
+            background: rgba(255, 255, 255, 0.06) !important;
+        }
+        #monitoringTable_wrapper .dataTables_paginate .paginate_button,
+        #registeredItemsTable_wrapper .dataTables_paginate .paginate_button {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            color: #dbeafe !important;
+            border-radius: 0.5rem !important;
+        }
+        #monitoringTable_wrapper .dataTables_paginate .paginate_button.current,
+        #registeredItemsTable_wrapper .dataTables_paginate .paginate_button.current {
+            background: linear-gradient(135deg, #1C5C1C 0%, #144014 100%) !important;
+            color: #ffffff !important;
+            border-color: rgba(28, 92, 28, 0.78) !important;
+        }
+        .action-btn,
+        .logout-link {
+            background: linear-gradient(135deg, #1C5C1C 0%, #144014 100%) !important;
+            border-color: rgba(28, 92, 28, 0.72) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 15px rgba(28, 92, 28, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.28) !important;
+        }
+        .action-btn:hover,
+        .logout-link:hover {
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 8px 25px rgba(28, 92, 28, 0.62) !important;
+        }
+        .action-btn-secondary {
+            background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%) !important;
+            border-color: rgba(59, 130, 246, 0.72) !important;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.2) !important;
+        }
+        .action-btn-rose {
+            background: linear-gradient(135deg, #0f766e 0%, #0e7490 100%) !important;
+            border-color: rgba(45, 212, 191, 0.6) !important;
+            color: #e6fffb !important;
+        }
+        .status-badge {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+        }
+        #hw-status { color: #cbd5e1 !important; }
+
+        /* Force both DataTables to match login-style dark 3D + animation */
+        .table-shell {
+            position: relative;
+            background: linear-gradient(145deg, rgba(10, 15, 22, 0.92), rgba(12, 30, 20, 0.78)) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 18px 38px rgba(0, 0, 0, 0.45) !important;
+        }
+        .table-shell::before {
+            content: "";
+            position: absolute;
+            inset: -35% -20%;
+            background: linear-gradient(115deg, transparent 30%, rgba(59, 130, 246, 0.12) 50%, transparent 70%);
+            transform: translateX(-60%);
+            animation: tableSheen 8.5s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes tableSheen {
+            0% { transform: translateX(-70%); }
+            100% { transform: translateX(70%); }
+        }
+        #monitoringTable_wrapper .dataTables_scroll,
+        #registeredItemsTable_wrapper .dataTables_scroll,
+        #monitoringTable_wrapper .dataTables_scrollHead,
+        #monitoringTable_wrapper .dataTables_scrollBody,
+        #registeredItemsTable_wrapper .dataTables_scrollHead,
+        #registeredItemsTable_wrapper .dataTables_scrollBody {
+            background: transparent !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        #monitoringTable_wrapper table.dataTable,
+        #registeredItemsTable_wrapper table.dataTable {
+            background: rgba(8, 12, 20, 0.62) !important;
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+            animation: tableBreathe 6.8s ease-in-out infinite;
+        }
+        @keyframes tableBreathe {
+            0%, 100% { box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.12); }
+            50% { box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.26); }
+        }
+        #monitoringTable_wrapper table.dataTable thead th,
+        #registeredItemsTable_wrapper table.dataTable thead th {
+            background: linear-gradient(135deg, rgba(25, 35, 48, 0.94), rgba(18, 46, 33, 0.92)) !important;
+            color: #dbeafe !important;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.3) !important;
+        }
+        #monitoringTable_wrapper table.dataTable tbody tr td,
+        #registeredItemsTable_wrapper table.dataTable tbody tr td {
+            background: rgba(15, 23, 42, 0.66) !important;
+            color: #e2e8f0 !important;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.14) !important;
+        }
+        #monitoringTable_wrapper table.dataTable.stripe>tbody>tr.odd>td,
+        #monitoringTable_wrapper table.dataTable.display>tbody>tr.odd>td,
+        #registeredItemsTable_wrapper table.dataTable.stripe>tbody>tr.odd>td,
+        #registeredItemsTable_wrapper table.dataTable.display>tbody>tr.odd>td {
+            background: rgba(15, 23, 42, 0.6) !important;
+        }
+        #monitoringTable_wrapper table.dataTable.stripe>tbody>tr.even>td,
+        #monitoringTable_wrapper table.dataTable.display>tbody>tr.even>td,
+        #registeredItemsTable_wrapper table.dataTable.stripe>tbody>tr.even>td,
+        #registeredItemsTable_wrapper table.dataTable.display>tbody>tr.even>td {
+            background: rgba(30, 41, 59, 0.66) !important;
+        }
+        #monitoringTable_wrapper table.dataTable.hover>tbody>tr:hover>td,
+        #monitoringTable_wrapper table.dataTable.display>tbody>tr:hover>td,
+        #registeredItemsTable_wrapper table.dataTable.hover>tbody>tr:hover>td,
+        #registeredItemsTable_wrapper table.dataTable.display>tbody>tr:hover>td {
+            background: rgba(30, 58, 138, 0.36) !important;
+        }
+        #monitoringTable_wrapper .dataTables_filter input,
+        #registeredItemsTable_wrapper .dataTables_filter input {
+            background: rgba(255, 255, 255, 0.06) !important;
+            color: #f8fafc !important;
+            border-color: rgba(148, 163, 184, 0.3) !important;
+        }
+
+        /* No-white container policy across app */
         .top-dock,
         .nav-ribbon,
-        .panel,
         .spotlight,
+        .kpi,
+        .panel,
+        .summary,
+        .scanner,
         .feed-panel,
-        #user-management-page .panel {
-            box-shadow: 0 22px 46px rgba(15, 23, 42, 0.22) !important;
+        #user-management-page .panel,
+        #dashboard-page .panel,
+        #registration-page .panel,
+        #history-page .panel,
+        .registration-grid > aside,
+        .registration-grid > article {
+            background: linear-gradient(145deg, rgba(12, 18, 30, 0.84), rgba(12, 34, 24, 0.74)) !important;
+            border-color: rgba(148, 163, 184, 0.22) !important;
         }
-        .hero-dock {
-            box-shadow: 0 26px 54px rgba(15, 23, 42, 0.3) !important;
+        #monitoringTable_wrapper .dataTables_length,
+        #monitoringTable_wrapper .dataTables_filter,
+        #monitoringTable_wrapper .dt-buttons,
+        #monitoringTable_wrapper .dataTables_paginate,
+        #monitoringTable_wrapper .dataTables_info,
+        #registeredItemsTable_wrapper .dataTables_length,
+        #registeredItemsTable_wrapper .dataTables_filter,
+        #registeredItemsTable_wrapper .dt-buttons,
+        #registeredItemsTable_wrapper .dataTables_paginate,
+        #registeredItemsTable_wrapper .dataTables_info {
+            background: rgba(10, 14, 24, 0.52) !important;
+            border: 1px solid rgba(148, 163, 184, 0.16) !important;
+            border-radius: 0.55rem !important;
+            padding: 0.34rem 0.5rem !important;
+            color: #cbd5e1 !important;
+        }
+        #monitoringTable_wrapper .dt-button,
+        #registeredItemsTable_wrapper .dt-button {
+            background: linear-gradient(135deg, rgba(22, 53, 35, 0.92), rgba(20, 73, 48, 0.9)) !important;
+            border: 1px solid rgba(74, 222, 128, 0.38) !important;
+            color: #f8fafc !important;
+        }
+        #live-page-size,
+        #live-page-number,
+        #live-go-page,
+        #live-first-page,
+        #live-last-page,
+        .live-page-btn {
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(20, 35, 30, 0.82)) !important;
+            border: 1px solid rgba(148, 163, 184, 0.34) !important;
+            color: #f8fafc !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 20px rgba(2, 6, 23, 0.36) !important;
+        }
+        #live-page-size option {
+            background: #0f172a !important;
+            color: #f8fafc !important;
+        }
+        #live-page-number::placeholder {
+            color: rgba(203, 213, 225, 0.72) !important;
+        }
+        #monitoringTable_wrapper .dataTables_paginate .paginate_button,
+        #registeredItemsTable_wrapper .dataTables_paginate .paginate_button {
+            color: #e2e8f0 !important;
+        }
+        #monitoringTable_wrapper .dataTables_paginate .paginate_button.disabled,
+        #registeredItemsTable_wrapper .dataTables_paginate .paginate_button.disabled {
+            background: rgba(30, 41, 59, 0.45) !important;
+            color: rgba(203, 213, 225, 0.62) !important;
+            border-color: rgba(100, 116, 139, 0.34) !important;
+        }
+        .studio [class*="bg-white"],
+        .studio [class^="bg-white"] {
+            background: rgba(15, 23, 42, 0.55) !important;
+        }
+        .feed-panel .filters {
+            position: relative;
+            background: linear-gradient(145deg, rgba(10, 16, 28, 0.9), rgba(12, 34, 24, 0.78)) !important;
+            border: 1px solid rgba(148, 163, 184, 0.26) !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 14px 28px rgba(2, 6, 23, 0.35) !important;
+        }
+        .feed-panel .filters::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 0.8rem;
+            background: linear-gradient(112deg, transparent 30%, rgba(59, 130, 246, 0.12) 50%, transparent 70%);
+            transform: translateX(-130%);
+            animation: feedFilterSheen 9s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes feedFilterSheen {
+            0% { transform: translateX(-130%); }
+            100% { transform: translateX(130%); }
+        }
+        .feed-panel .field-label {
+            color: #dbeafe !important;
+        }
+        .feed-panel #feed-start-date,
+        .feed-panel #feed-end-date {
+            background: rgba(15, 23, 42, 0.78) !important;
+            border: 1px solid rgba(148, 163, 184, 0.36) !important;
+            color: #f8fafc !important;
+            color-scheme: dark;
+        }
+        .feed-panel #feed-start-date::-webkit-calendar-picker-indicator,
+        .feed-panel #feed-end-date::-webkit-calendar-picker-indicator {
+            filter: invert(1) brightness(1.25);
+            opacity: 0.9;
+        }
+        .feed-panel .feed-generate-btn {
+            background: linear-gradient(135deg, #1C5C1C 0%, #144014 100%) !important;
+            border-color: rgba(28, 92, 28, 0.78) !important;
+            color: #ffffff !important;
+        }
+
+        /* Global login-theme surface lock */
+        .studio .top-dock,
+        .studio .nav-ribbon,
+        .studio .panel,
+        .studio .summary,
+        .studio .spotlight,
+        .studio .kpi,
+        .studio .filters,
+        .studio .table-shell,
+        .studio .scanner,
+        .studio .scanner-core,
+        .studio .status-badge,
+        .studio .registration-grid > aside,
+        .studio .registration-grid > article,
+        .studio .app-footer {
+            background: linear-gradient(145deg, rgba(10, 16, 28, 0.9), rgba(12, 34, 24, 0.78)) !important;
+            border-color: rgba(148, 163, 184, 0.26) !important;
+            border-radius: 0.95rem !important;
+        }
+        .studio input[type="date"],
+        .studio input[type="text"],
+        .studio input[type="number"],
+        .studio input[type="password"],
+        .studio select,
+        .studio textarea {
+            background: rgba(15, 23, 42, 0.78) !important;
+            color: #f8fafc !important;
+            border-color: rgba(148, 163, 184, 0.36) !important;
+            border-radius: 0.72rem !important;
+        }
+        #registration-form input,
+        #registration-form select,
+        #registration-form textarea {
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(12, 34, 24, 0.72)) !important;
+            color: #f8fafc !important;
+            border: 1px solid rgba(148, 163, 184, 0.38) !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 16px rgba(2, 6, 23, 0.26) !important;
+            border-radius: 0.74rem !important;
+            min-height: 42px !important;
+            height: 42px !important;
+            padding: 0.56rem 0.78rem !important;
+            line-height: 1.15 !important;
+        }
+        #registration-form input[type="number"] {
+            appearance: textfield;
+            -moz-appearance: textfield;
+        }
+        #registration-form input[type="number"]::-webkit-outer-spin-button,
+        #registration-form input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        #registration-form input::placeholder,
+        #registration-form textarea::placeholder {
+            color: rgba(203, 213, 225, 0.72) !important;
+        }
+        #registration-form input:-webkit-autofill,
+        #registration-form input:-webkit-autofill:hover,
+        #registration-form input:-webkit-autofill:focus,
+        #registration-form select:-webkit-autofill,
+        #registration-form textarea:-webkit-autofill {
+            -webkit-text-fill-color: #f8fafc !important;
+            -webkit-box-shadow: 0 0 0 1000px #0f172a inset !important;
+            box-shadow: 0 0 0 1000px #0f172a inset !important;
+            transition: background-color 5000s ease-in-out 0s;
+            caret-color: #f8fafc !important;
+        }
+        .studio select option {
+            background: #0f172a !important;
+            color: #f8fafc !important;
+        }
+        .studio .field-label,
+        .studio .panel-sub,
+        .studio .spot-text,
+        .studio .kpi-k,
+        .studio .live-meta,
+        .studio #registered-items-meta,
+        .studio #user-action-msg {
+            color: #cbd5e1 !important;
+        }
+        .studio [style*="background: #fff"],
+        .studio [style*="background:#fff"],
+        .studio [style*="background: #ffffff"],
+        .studio [style*="background:#ffffff"] {
+            background: linear-gradient(145deg, rgba(10, 16, 28, 0.9), rgba(12, 34, 24, 0.78)) !important;
+        }
+        /* Live table text contrast fix */
+        #monitoringTable tbody .text-slate-300 {
+            color: #cbd5e1 !important;
+        }
+        #monitoringTable tbody .text-slate-100 {
+            color: #f8fafc !important;
+        }
+        #monitoringTable tbody .item-name {
+            color: #f1f5f9 !important;
+        }
+        #monitoringTable tbody .item-sub {
+            color: #93c5fd !important;
+        }
+        #monitoringTable tbody .tag-chip {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.94)) !important;
+            color: #e2e8f0 !important;
+            border: 1px solid rgba(148, 163, 184, 0.46) !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+        #monitoringTable tbody .piece-cell {
+            color: #86efac !important;
+            font-weight: 700 !important;
+        }
+        #monitoringTable tbody .status-chip-in {
+            color: #d1fae5 !important;
+            background: rgba(16, 185, 129, 0.28) !important;
+            border-color: rgba(16, 185, 129, 0.52) !important;
+        }
+        #monitoringTable tbody .status-chip-out {
+            color: #fef3c7 !important;
+            background: rgba(245, 158, 11, 0.3) !important;
+            border-color: rgba(245, 158, 11, 0.56) !important;
+        }
+        /* Registration table parity with live table */
+        #registeredItemsTable_wrapper table.dataTable thead th {
+            background: linear-gradient(135deg, rgba(25, 35, 48, 0.94), rgba(18, 46, 33, 0.92)) !important;
+            color: #dbeafe !important;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.3) !important;
+        }
+        #registeredItemsTable_wrapper table.dataTable tbody tr td,
+        #registeredItemsTable tbody td {
+            background: rgba(15, 23, 42, 0.66) !important;
+            color: #e2e8f0 !important;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.14) !important;
+            font-size: 0.78rem !important;
+        }
+        #registeredItemsTable_wrapper table.dataTable.stripe>tbody>tr.odd>td,
+        #registeredItemsTable_wrapper table.dataTable.display>tbody>tr.odd>td {
+            background: rgba(15, 23, 42, 0.6) !important;
+        }
+        #registeredItemsTable_wrapper table.dataTable.stripe>tbody>tr.even>td,
+        #registeredItemsTable_wrapper table.dataTable.display>tbody>tr.even>td {
+            background: rgba(30, 41, 59, 0.66) !important;
+        }
+        #registeredItemsTable_wrapper table.dataTable.hover>tbody>tr:hover>td,
+        #registeredItemsTable_wrapper table.dataTable.display>tbody>tr:hover>td {
+            background: rgba(30, 58, 138, 0.36) !important;
+        }
+        #registeredItemsTable tbody td:nth-child(2) {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+            color: #dbeafe !important;
+            letter-spacing: 0.03em;
+        }
+        #registeredItemsTable tbody .tag-chip {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.94)) !important;
+            color: #e2e8f0 !important;
+            border: 1px solid rgba(148, 163, 184, 0.46) !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+        #registeredItemsTable tbody .item-name {
+            color: #f1f5f9 !important;
+        }
+        #registeredItemsTable tbody .text-slate-300 {
+            color: #cbd5e1 !important;
+        }
+        #registeredItemsTable tbody .text-slate-100 {
+            color: #f8fafc !important;
+        }
+        #registeredItemsTable tbody .piece-cell {
+            color: #86efac !important;
+            font-weight: 700 !important;
+        }
+        #registeredItemsTable tbody td:nth-child(7) {
+            color: #86efac !important;
+            font-weight: 700 !important;
+        }
+        #live-page-size,
+        #live-page-number,
+        #live-go-page,
+        #live-first-page,
+        #live-last-page,
+        .live-page-btn,
+        #monitoringTable_wrapper .dataTables_filter input,
+        #registeredItemsTable_wrapper .dataTables_filter input,
+        #monitoringTable_wrapper .dataTables_paginate .paginate_button,
+        #registeredItemsTable_wrapper .dataTables_paginate .paginate_button,
+        #monitoringTable_wrapper .dt-button,
+        #registeredItemsTable_wrapper .dt-button {
+            border-radius: 0.68rem !important;
         }
 
         .reveal { opacity: 0; transform: translateY(10px); animation: fadeUp 0.54s ease forwards; }
@@ -1224,6 +1726,8 @@
     </style>
 </head>
 <body>
+    <canvas id="bg-canvas"></canvas>
+    <div class="bg-mesh"></div>
     <div class="bg-matrix"></div>
 
     <div class="studio">
@@ -1248,7 +1752,8 @@
 
         <nav class="nav-ribbon glass">
             <button onclick="showPage('dashboard-page')" id="btn-live" class="nav-link nav-link-active">Live Dashboard</button>
-            <button onclick="showPage('registration-page')" id="btn-setup" class="nav-link">History and Registration</button>
+            <button onclick="showPage('history-page')" id="btn-history" class="nav-link">History and Export</button>
+            <button onclick="showPage('registration-page')" id="btn-register" class="nav-link">Registration</button>
             <button onclick="showPage('user-management-page')" id="btn-users" class="nav-link">Create Users</button>
         </nav>
 
@@ -1284,7 +1789,7 @@
                                 <th class="p-2">Item Details</th>
                                 <th class="p-2">Category</th>
                                 <th class="p-2">Weight/Purity</th>
-                                <th class="p-2">Price</th>
+                                <th class="p-2">Piece</th>
                                 <th class="p-2 text-right">Status</th>
                                 <th class="hidden">SortKey</th>
                             </tr>
@@ -1305,9 +1810,10 @@
                     </div>
                 </div>
             </article>
+
         </section>
 
-        <section id="registration-page" class="page-section space-y-3">
+        <section id="history-page" class="page-section space-y-3">
             <article class="panel reveal" style="animation-delay:0.05s">
                 <h3 class="panel-title">History Summary Lens</h3>
                 <p class="panel-sub">Select a date and inspect in-out-pending movement instantly.</p>
@@ -1331,6 +1837,9 @@
                 </div>
             </article>
 
+        </section>
+
+        <section id="registration-page" class="page-section space-y-3">
             <div class="registration-grid">
                 <aside class="scanner reveal" style="animation-delay:0.14s">
                     <h3 class="panel-title">RFID Intake Dock</h3>
@@ -1344,7 +1853,7 @@
 
                 <article class="panel reveal" style="animation-delay:0.18s">
                     <h3 class="panel-title">Register or Update Item</h3>
-                    <p class="panel-sub">Maintain category, purity, HUID, weight and pricing with one form.</p>
+                    <p class="panel-sub">Maintain category, purity, HUID, weight and piece count with one form.</p>
                     <form id="registration-form" class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="md:col-span-2"><label class="field-label" for="reg-name">Item Name</label><input id="reg-name" required placeholder="e.g. Solitaire Diamond Ring" type="text"/></div>
                         <div><label class="field-label" for="reg-category">Category</label><input id="reg-category" placeholder="e.g. Rings, Necklaces"/></div>
@@ -1352,7 +1861,7 @@
                         <div><label class="field-label" for="reg-purity">Purity</label><input id="reg-purity" placeholder="e.g. 22K"/></div>
                         <div><label class="field-label" for="reg-huid">HUID Number</label><input id="reg-huid" placeholder="6-digit unique code"/></div>
                         <div><label class="field-label" for="reg-weight">Weight (g)</label><input id="reg-weight" step="0.001" type="number"/></div>
-                        <div><label class="field-label" for="reg-price">Price (INR)</label><input id="reg-price" step="0.01" type="number"/></div>
+                        <div><label class="field-label" for="reg-piece">Piece</label><input id="reg-piece" step="0.01" type="number"/></div>
                         <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3">
                             <button type="submit" class="action-btn action-btn-secondary">Save Item</button>
                             <button id="update-item-btn" type="button" onclick="updateRegisteredItem()" class="action-btn">Update Item</button>
@@ -1360,6 +1869,39 @@
                     </form>
                 </article>
             </div>
+
+            <article class="panel reveal" style="animation-delay:0.22s">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <h3 class="panel-title">Registered Items List</h3>
+                        <p class="panel-sub">List opens only when you click Open List.</p>
+                    </div>
+                    <button id="registration-list-toggle-btn" type="button" onclick="toggleRegistrationItemsList()" class="action-btn action-btn-secondary">Open List</button>
+                </div>
+
+                <div id="registration-items-container" style="display:none;">
+                    <div class="flex justify-end mt-3">
+                        <button type="button" onclick="loadRegisteredItemsPreview()" class="action-btn action-btn-secondary">Refresh List</button>
+                    </div>
+                    <div class="table-shell overflow-hidden mt-3">
+                        <table id="registeredItemsTable" class="w-full text-left">
+                            <thead>
+                                <tr>
+                                    <th class="p-2">#</th>
+                                    <th class="p-2">EPC ID (24D)</th>
+                                    <th class="p-2">Item Name</th>
+                                    <th class="p-2">Category</th>
+                                    <th class="p-2">Metal/Purity</th>
+                                    <th class="p-2">Weight</th>
+                                    <th class="p-2">Piece</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div id="registered-items-meta" class="mt-3 text-[0.66rem] font-semibold tracking-[0.08em] text-slate-500">Total Registered: 0</div>
+                </div>
+            </article>
         </section>
 
         <section id="user-management-page" class="page-section">
@@ -1401,12 +1943,16 @@
 })();
 
 let monitoringTable;
+let registeredItemsTable;
 let socket;
 let currentUserRole = 'staff';
 const MAX_LIVE_ROWS = 10000;
+const REGISTERED_ROWS_PER_PAGE = 15;
+let isRegistrationListVisible = false;
 let tagLookupTimer = null;
 let lastAutoFilledTag = '';
 const LAST_ACTIVE_PAGE_KEY = 'rfid_last_active_page';
+let registeredItemsCache = [];
 
 function restoreActivePageAfterReload() {
     try {
@@ -1419,7 +1965,7 @@ function restoreActivePageAfterReload() {
             return true;
         }
 
-        if (['dashboard-page', 'registration-page', 'user-management-page'].includes(pageId)) {
+        if (['dashboard-page', 'history-page', 'registration-page', 'user-management-page'].includes(pageId)) {
             showPage(pageId);
             return true;
         }
@@ -1499,8 +2045,10 @@ function showPage(pageId) {
 
     if (pageId === 'dashboard-page') {
         $('#btn-live').addClass('nav-link-active');
+    } else if (pageId === 'history-page') {
+        $('#btn-history').addClass('nav-link-active');
     } else if (pageId === 'registration-page') {
-        $('#btn-setup').addClass('nav-link-active');
+        $('#btn-register').addClass('nav-link-active');
     } else if (pageId === 'user-management-page') {
         if (currentUserRole !== 'admin') {
             showPage('dashboard-page');
@@ -1510,6 +2058,102 @@ function showPage(pageId) {
     }
 
     animateSection(pageId);
+}
+
+function toggleRegistrationItemsList() {
+    const container = document.getElementById('registration-items-container');
+    const toggleBtn = document.getElementById('registration-list-toggle-btn');
+    if (!container || !toggleBtn) return;
+
+    isRegistrationListVisible = !isRegistrationListVisible;
+    if (isRegistrationListVisible) {
+        container.style.display = 'block';
+        toggleBtn.textContent = 'Close List';
+        loadRegisteredItemsPreview();
+    } else {
+        container.style.display = 'none';
+        toggleBtn.textContent = 'Open List';
+    }
+}
+
+function formatPieceValue(pieceValue) {
+    const parsed = Number(pieceValue || 0);
+    if (!Number.isFinite(parsed)) return String(pieceValue || 0);
+    return parsed.toLocaleString('en-IN');
+}
+
+function ensureRegisteredItemsTable() {
+    if (registeredItemsTable) return;
+    registeredItemsTable = $('#registeredItemsTable').DataTable({
+        paging: true,
+        pagingType: 'simple_numbers',
+        pageLength: REGISTERED_ROWS_PER_PAGE,
+        lengthChange: false,
+        searching: false,
+        ordering: false,
+        info: false,
+        deferRender: true,
+        dom: 'rtp',
+        language: {
+            emptyTable: 'No registered items found'
+        }
+    });
+}
+
+function setRegisteredItemsLoading(message) {
+    const meta = document.getElementById('registered-items-meta');
+    if (!meta) return;
+    meta.textContent = message;
+    if (registeredItemsTable) {
+        registeredItemsTable.clear().draw(false);
+    }
+}
+
+function renderRegisteredItems(items) {
+    ensureRegisteredItemsTable();
+    const sortedItems = [...items].sort((a, b) => String(b.timestamp || '').localeCompare(String(a.timestamp || '')));
+    registeredItemsTable.clear();
+
+    sortedItems.forEach((item, idx) => {
+        registeredItemsTable.row.add([
+            idx + 1,
+            `<span class="tag-chip">${item.tag_id || '-'}</span>`,
+            `<span class="item-name">${item.item_name || '-'}</span>`,
+            `<span class="font-semibold text-slate-300">${item.category || '-'}</span>`,
+            `<span class="font-semibold text-slate-300">${item.metal_type || '-'} / ${item.purity || '-'}</span>`,
+            `<span class="font-semibold text-slate-100">${item.weight ?? 0}g</span>`,
+            `<span class="font-black piece-cell">${formatPieceValue(item.piece)}</span>`
+        ]);
+    });
+
+    registeredItemsTable.draw(false);
+    registeredItemsTable.page('first').draw('page');
+
+    const meta = document.getElementById('registered-items-meta');
+    if (meta) {
+        meta.textContent = `Total Registered: ${sortedItems.length} | Rows/Page: ${REGISTERED_ROWS_PER_PAGE}`;
+    }
+}
+
+async function loadRegisteredItemsPreview() {
+    setRegisteredItemsLoading('Loading registered items...');
+    try {
+        const res = await fetch('/api/all-inventory', { cache: 'no-store' });
+        if (res.status === 401) {
+            window.location.replace('/login');
+            return;
+        }
+        if (!res.ok) {
+            setRegisteredItemsLoading('Unable to load items');
+            return;
+        }
+        const items = await res.json();
+        registeredItemsCache = Array.isArray(items) ? items : [];
+        renderRegisteredItems(registeredItemsCache);
+    } catch (err) {
+        console.error(err);
+        setRegisteredItemsLoading('Unable to load items');
+    }
 }
 
 async function applyUserAccess() {
@@ -1590,8 +2234,8 @@ function addRow(d, drawNow = true) {
     const directionClass = d.direction === 'IN' ? 'status-chip status-chip-in' : 'status-chip status-chip-out';
     const badge = `<div class="text-right"><span class="${directionClass}">${d.direction || '-'}</span></div>`;
     const sortKey = Number(d.id || Date.now() / 1000);
-    const parsedPrice = Number(d.price || 0);
-    const priceLabel = Number.isFinite(parsedPrice) ? parsedPrice.toLocaleString('en-IN') : (d.price || 0);
+    const parsedPiece = Number(d.piece || 0);
+    const pieceLabel = Number.isFinite(parsedPiece) ? parsedPiece.toLocaleString('en-IN') : (d.piece || 0);
     if (monitoringTable.rows().count() >= MAX_LIVE_ROWS) {
         const lastIndex = monitoringTable.rows().indexes().toArray().pop();
         if (lastIndex !== undefined) monitoringTable.row(lastIndex).remove();
@@ -1603,7 +2247,7 @@ function addRow(d, drawNow = true) {
         `<div class="flex flex-col"><span class="item-name">${d.item_name || '-'}</span><span class="item-sub">${d.huid || '-'}</span></div>`,
         `<span class="font-semibold text-slate-300">${d.category || '-'}</span>`,
         `<span class="font-semibold text-slate-100">${d.weight || 0}g</span>`,
-        `<span class="font-black price-cell">INR ${priceLabel}</span>`,
+        `<span class="font-black piece-cell">${pieceLabel}</span>`,
         badge,
         sortKey
     ]);
@@ -1697,7 +2341,7 @@ async function refreshStats() {
         $('#reg-purity').val('');
         $('#reg-huid').val('');
         $('#reg-weight').val('');
-        $('#reg-price').val('');
+        $('#reg-piece').val('');
     }
 
     function fillRegistrationFields(item) {
@@ -1707,7 +2351,7 @@ async function refreshStats() {
         $('#reg-purity').val(item.purity || '');
         $('#reg-huid').val(item.huid || '');
         $('#reg-weight').val(item.weight ?? '');
-        $('#reg-price').val(item.price ?? '');
+        $('#reg-piece').val(item.piece ?? '');
     }
 
     async function fetchAndFillItemByTag(tagId, silentNotFound = true) {
@@ -1775,7 +2419,7 @@ async function refreshStats() {
             purity: $('#reg-purity').val(),
             weight: parseFloat($('#reg-weight').val()) || 0,
             huid: $('#reg-huid').val(),
-            price: parseFloat($('#reg-price').val()) || 0
+            piece: parseFloat($('#reg-piece').val()) || 0
         };
     }
 
@@ -1797,8 +2441,8 @@ async function refreshStats() {
         const rawWeight = $('#reg-weight').val();
         if (rawWeight !== '') payload.weight = parseFloat(rawWeight);
 
-        const rawPrice = $('#reg-price').val();
-        if (rawPrice !== '') payload.price = parseFloat(rawPrice);
+        const rawPiece = $('#reg-piece').val();
+        if (rawPiece !== '') payload.piece = parseFloat(rawPiece);
 
         return payload;
     }
@@ -1896,13 +2540,17 @@ async function refreshStats() {
 
   function buildOrderedCsvRows(data, preferredOrder = []) {
     if (!Array.isArray(data) || data.length === 0) return { headers: [], rows: [] };
+    const headerLabelMap = {
+      piece: "Piece"
+    };
     const firstRowKeys = Object.keys(data[0]);
     const orderedPreferred = preferredOrder.filter(k => firstRowKeys.includes(k));
     const remaining = firstRowKeys.filter(k => !orderedPreferred.includes(k));
-    const headers = [...orderedPreferred, ...remaining];
-    const rows = data.map((row, idx) => headers.map((h) => {
-      if (h === "sr_no") return idx + 1;
-      const value = row[h];
+    const keys = [...orderedPreferred, ...remaining];
+    const headers = keys.map((key) => headerLabelMap[key] || key);
+    const rows = data.map((row, idx) => keys.map((key) => {
+      if (key === "sr_no") return idx + 1;
+      const value = row[key];
       return value === undefined || value === null ? "" : value;
     }));
     return { headers, rows };
@@ -2031,7 +2679,7 @@ async function refreshStats() {
                 "purity",
                 "huid",
                 "weight",
-                "price",
+                "piece",
                 "timestamp"
             ];
             const { headers, rows } = buildOrderedCsvRows(data, preferredColumns);
@@ -2079,6 +2727,72 @@ async function registerNewUser() {
         msg.textContent = 'Network error while creating user.';
     }
 }
+
+function initBackgroundParticles() {
+    const canvas = document.getElementById('bg-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let particles = [];
+
+    function resizeBgCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    class BgParticle {
+        constructor() {
+            this.reset();
+        }
+        reset() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.vx = (Math.random() - 0.5) * 0.5;
+            this.vy = (Math.random() - 0.5) * 0.5;
+            this.size = Math.random() * 2 + 1;
+            this.color = Math.random() > 0.5
+                ? 'rgba(28, 92, 28, 0.32)'
+                : 'rgba(59, 130, 246, 0.32)';
+        }
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                this.reset();
+            }
+        }
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+        }
+    }
+
+    function initParticles() {
+        particles = [];
+        for (let i = 0; i < 80; i += 1) {
+            particles.push(new BgParticle());
+        }
+    }
+
+    function animateBg() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((particle) => {
+            particle.update();
+            particle.draw();
+        });
+        requestAnimationFrame(animateBg);
+    }
+
+    resizeBgCanvas();
+    initParticles();
+    window.addEventListener('resize', resizeBgCanvas);
+    animateBg();
+}
+
+initBackgroundParticles();
 </script>
 </body>
 </html>

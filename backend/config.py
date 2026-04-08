@@ -119,6 +119,22 @@ def _parse_antenna_map(raw: str) -> dict[str, str]:
     return mapped
 
 
+def _parse_antenna_float_map(raw: str) -> dict[int, float]:
+    mapped: dict[int, float] = {}
+    for chunk in raw.split(","):
+        chunk = chunk.strip()
+        if not chunk or ":" not in chunk:
+            continue
+        antenna_raw, value_raw = chunk.split(":", 1)
+        try:
+            antenna = int(antenna_raw.strip())
+            value = float(value_raw.strip())
+        except ValueError:
+            continue
+        mapped[antenna] = value
+    return mapped
+
+
 APP_ENV = _env_str("APP_ENV", "development").lower()
 IS_PRODUCTION = APP_ENV == "production"
 
@@ -185,9 +201,11 @@ RFID_ACTIVE_SETTINGS = {
     "REPORT_EVERY_N_TAGS": _env_int("RFID_ACTIVE_REPORT_EVERY_N_TAGS", 1),
     "REPORT_TIMEOUT_MS": _env_int("RFID_ACTIVE_REPORT_TIMEOUT_MS", 0),
     "SESSION": _env_int("RFID_ACTIVE_SESSION", 0),
+    "ANTENNA_CYCLE_SECONDS": _env_float("RFID_ACTIVE_ANTENNA_CYCLE_SECONDS", 0.0),
     "STALE_GRACE_SECONDS": _env_float("RFID_ACTIVE_STALE_GRACE_SECONDS", 1.0),
     "API_TIMEOUT_SECONDS": _env_float("RFID_ACTIVE_API_TIMEOUT_SECONDS", 1.0),
     "DROP_STALE_REPORTS": _env_bool("RFID_ACTIVE_DROP_STALE_REPORTS", False),
+    "TX_POWER_DBM": _parse_antenna_float_map(_env_str("RFID_ACTIVE_TX_POWER_DBM", "")),
     "DEBUG": _env_bool("RFID_ACTIVE_DEBUG", False),
     "PUSH_TOKEN": _env_str("RFID_ACTIVE_PUSH_TOKEN", ""),
     "SINGLE_INSTANCE_LOCK": _env_bool("RFID_ACTIVE_SINGLE_INSTANCE_LOCK", True),
@@ -200,6 +218,13 @@ RFID_ACTIVE_SETTINGS = {
 SCAN_COOLDOWN_SECONDS = _env_int("SCAN_COOLDOWN_SECONDS", 60)
 IN_REENTRY_COOLDOWN_SECONDS = _env_int("IN_REENTRY_COOLDOWN_SECONDS", SCAN_COOLDOWN_SECONDS)
 OUT_BLOCK_AFTER_IN_SECONDS = _env_int("OUT_BLOCK_AFTER_IN_SECONDS", 60)
+DIRECTION_SWITCH_GUARD_SECONDS = _env_int(
+    "DIRECTION_SWITCH_GUARD_SECONDS",
+    OUT_BLOCK_AFTER_IN_SECONDS,
+)
+ANTENNA_COALESCE_WINDOW_MS = _env_int("ANTENNA_COALESCE_WINDOW_MS", 0)
+ALLOW_PENDING_IN_RELOG = _env_bool("ALLOW_PENDING_IN_RELOG", False)
+PENDING_IN_RELOG_SECONDS = _env_int("PENDING_IN_RELOG_SECONDS", 0)
 
 # Antenna-to-direction mapping for live IN/OUT feed
 _antenna_map_from_env = _parse_antenna_map(_env_str("ANTENNA_MAP", "1:IN,2:OUT"))
