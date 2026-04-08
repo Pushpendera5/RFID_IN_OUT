@@ -1469,6 +1469,11 @@ def get_item_by_tag(tag_id: str, _user=Depends(require_authenticated_user)):
         db.close()
 
 
+@app.get("/api/hello")
+def hello():
+    return {"message": "Hello! The RFID IN/OUT API is up and running."}
+
+
 @app.get("/api/all-inventory")
 def get_all_inventory(_user=Depends(require_authenticated_user)):
     db = SessionLocal()
